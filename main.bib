@@ -1,0 +1,727 @@
+% Long form of conference & journal abbreviations -- especially for camera ready
+@String(PAMI  = {IEEE Trans. Pattern Anal. Mach. Intell.})
+@String(IJCV  = {Int. J. Comput. Vis.})
+@String(CVPR  = {IEEE Conf. Comput. Vis. Pattern Recog.})
+@String(ICCV  = {Int. Conf. Comput. Vis.})
+@String(ECCV  = {Eur. Conf. Comput. Vis.})
+@String(NeurIPS = {Adv. Neural Inform. Process. Syst.})
+@String(ICML  = {Int. Conf. Mach. Learn.})
+@String(ICLR  = {Int. Conf. Learn. Represent.})
+@String(ACCV  = {Asian Conf. Comput. Vis.})
+@String(BMVC  = {Brit. Mach. Vis. Conf.})
+@String(CVPRW = {IEEE Conf. Comput. Vis. Pattern Recog. Worksh.})
+@String(AAAI  = {AAAI})
+@String(IJCAI = {IJCAI})
+@String(ICIP  = {IEEE Int. Conf. Image Process.})
+@String(ICPR  = {Int. Conf. Pattern Recog.})
+@String(ICASSP=	{ICASSP})
+@String(ICME  = {Int. Conf. Multimedia and Expo})
+@String(JMLR  = {J. Mach. Learn. Res.})
+@String(TMLR  = {Trans. Mach. Learn Res.})
+@String(TOG   = {ACM Trans. Graph.})
+@String(TIP   = {IEEE Trans. Image Process.})
+@String(TVCG  = {IEEE Trans. Vis. Comput. Graph.})
+@String(TCSVT = {IEEE Trans. Circuit Syst. Video Technol.})
+@String(TMM   = {IEEE Trans. Multimedia})
+@String(ACMMM = {ACM Int. Conf. Multimedia})
+@String(PR    = {Pattern Recognition})
+
+@String(MNI	  = {Nature Mach. Intell.})
+@String(SPL	  = {IEEE Sign. Process. Letters})
+@String(VR    = {Vis. Res.})
+@String(JOV	  = {J. Vis.})
+@String(TVC   = {The Vis. Comput.})
+@String(JCST  = {J. Comput. Sci. Tech.})
+@String(CGF   = {Comput. Graph. Forum})
+@String(CVM   = {Computational Visual Media})
+
+
+% Short form of conference & journal abbreviations -- especially for submission version
+% if desired, remove these macros in favor of the above ones
+@String(PAMI  = {IEEE TPAMI})
+@String(IJCV  = {IJCV})
+@String(CVPR  = {CVPR})
+@String(ICCV  = {ICCV})
+@String(ECCV  = {ECCV})
+@String(NeurIPS = {NeurIPS})
+@String(ICML  = {ICML})
+@String(ICLR  = {ICLR})
+@String(ACCV  = {ACCV})
+@String(BMVC  =	{BMVC})
+@String(CVPRW = {CVPRW})
+@String(AAAI  = {AAAI})
+@String(IJCAI = {IJCAI})
+@String(ICIP  = {ICIP})
+@String(ICPR  = {ICPR})
+@String(ICASSP=	{ICASSP})
+@String(ICME  =	{ICME})
+@String(JMLR  = {JMLR})
+@String(TMLR  = {TMLR})
+@String(TOG   = {ACM TOG})
+@String(TIP   = {IEEE TIP})
+@String(TVCG  = {IEEE TVCG})
+@String(TCSVT = {IEEE TCSVT})
+@String(TMM   =	{IEEE TMM})
+@String(ACMMM = {ACM MM})
+@String(PR    = {PR})
+
+@misc{zhou2018open3dmodernlibrary3d,
+      title={Open3D: A Modern Library for 3D Data Processing}, 
+      author={Qian-Yi Zhou and Jaesik Park and Vladlen Koltun},
+      year={2018},
+      eprint={1801.09847},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/1801.09847}, 
+}
+
+@inproceedings{10.1145/3596711.3596726,
+  author    = {Curless, Brian and Levoy, Marc},
+  title     = {A Volumetric Method for Building Complex Models from Range Images},
+  booktitle = {Proceedings of the 23rd Annual Conference on Computer Graphics and Interactive Techniques (SIGGRAPH)},
+  pages     = {303--312},
+  year      = {1996},
+  publisher = {ACM},
+  doi       = {10.1145/237170.237269}
+}
+
+
+
+@inproceedings{10.2312:SGP/SGP06/061-070,
+booktitle = {Symposium on Geometry Processing},
+editor = {Alla Sheffer and Konrad Polthier},
+title = {{Poisson Surface Reconstruction}},
+author = {Kazhdan, Michael and Bolitho, Matthew and Hoppe, Hugues},
+year = {2006},
+publisher = {The Eurographics Association},
+ISSN = {1727-8384},
+ISBN = {3-905673-24-X},
+DOI = {10.2312/SGP/SGP06/061-070}
+}
+
+@article{10.1145/2508363.2508374,
+author = {Nie\ss{}ner, Matthias and Zollh\"{o}fer, Michael and Izadi, Shahram and Stamminger, Marc},
+title = {Real-time 3D reconstruction at scale using voxel hashing},
+year = {2013},
+issue_date = {November 2013},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {32},
+number = {6},
+issn = {0730-0301},
+url = {https://doi.org/10.1145/2508363.2508374},
+doi = {10.1145/2508363.2508374},
+abstract = {Online 3D reconstruction is gaining newfound interest due to the availability of real-time consumer depth cameras. The basic problem takes live overlapping depth maps as input and incrementally fuses these into a single 3D model. This is challenging particularly when real-time performance is desired without trading quality or scale. We contribute an online system for large and fine scale volumetric reconstruction based on a memory and speed efficient data structure. Our system uses a simple spatial hashing scheme that compresses space, and allows for real-time access and updates of implicit surface data, without the need for a regular or hierarchical grid data structure. Surface data is only stored densely where measurements are observed. Additionally, data can be streamed efficiently in or out of the hash table, allowing for further scalability during sensor motion. We show interactive reconstructions of a variety of scenes, reconstructing both fine-grained details and large scale environments. We illustrate how all parts of our pipeline from depth map pre-processing, camera pose estimation, depth map fusion, and surface rendering are performed at real-time rates on commodity graphics hardware. We conclude with a comparison to current state-of-the-art online systems, illustrating improved performance and reconstruction quality.},
+journal = {ACM Trans. Graph.},
+month = nov,
+articleno = {169},
+numpages = {11},
+keywords = {GPU, data structure, real-time reconstruction, scalable}
+}
+
+
+@INPROCEEDINGS{7298631,
+  author={Newcombe, Richard A. and Fox, Dieter and Seitz, Steven M.},
+  booktitle={2015 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)}, 
+  title={DynamicFusion: Reconstruction and tracking of non-rigid scenes in real-time}, 
+  year={2015},
+  volume={},
+  number={},
+  pages={343-352},
+  keywords={Real-time systems;Transforms;Geometry;Surface reconstruction;Cameras;Tracking;Shape},
+  doi={10.1109/CVPR.2015.7298631}}
+
+
+@article{10.1145/1276377.1276478,
+author = {Sumner, Robert W. and Schmid, Johannes and Pauly, Mark},
+title = {Embedded deformation for shape manipulation},
+year = {2007},
+issue_date = {July 2007},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {26},
+number = {3},
+issn = {0730-0301},
+url = {https://doi.org/10.1145/1276377.1276478},
+doi = {10.1145/1276377.1276478},
+abstract = {We present an algorithm that generates natural and intuitive deformations via direct manipulation for a wide range of shape representations and editing scenarios. Our method builds a space deformation represented by a collection of affine transformations organized in a graph structure. One transformation is associated with each graph node and applies a deformation to the nearby space. Positional constraints are specified on the points of an embedded object. As the user manipulates the constraints, a nonlinear minimization problem is solved to find optimal values for the affine transformations. Feature preservation is encoded directly in the objective function by measuring the deviation of each transformation from a true rotation. This algorithm addresses the problem of "embedded deformation" since it deforms space through direct manipulation of objects embedded within it, while preserving the embedded objects' features. We demonstrate our method by editing meshes, polygon soups, mesh animations, and animated particle systems.},
+journal = {ACM Trans. Graph.},
+month = jul,
+pages = {80 -- es},
+numpages = {8},
+keywords = {shape editing, geometric modeling, deformation}
+}
+
+
+@InProceedings{10.1007/978-3-662-05105-4_2,
+author="Meyer, Mark
+and Desbrun, Mathieu
+and Schr{\"o}der, Peter
+and Barr, Alan H.",
+editor="Hege, Hans-Christian
+and Polthier, Konrad",
+title="Discrete Differential-Geometry Operators for Triangulated 2-Manifolds",
+booktitle="Visualization and Mathematics III",
+year="2003",
+publisher="Springer Berlin Heidelberg",
+address="Berlin, Heidelberg",
+pages="35--57",
+abstract="This paper proposes a unified and consistent set of flexible tools to approximate important geometric attributes, including normal vectors and curvatures on arbitrary triangle meshes. We present a consistent derivation of these first and second order differential properties using averaging Voronoi cells and the mixed Finite-Element/Finite-Volume method, and compare them to existing formulations. Building upon previous work in discrete geometry, these operators are closely related to the continuous case, guaranteeing an appropriate extension from the continuous to the discrete setting: they respect most intrinsic properties of the continuous differential operators. We show that these estimates are optimal in accuracy under mild smoothness conditions, and demonstrate their numerical quality. We also present applications of these operators, such as mesh smoothing, enhancement, and quality checking, and show results of denoising in higher dimensions, such as for tensor images.",
+isbn="978-3-662-05105-4"
+}
+
+
+@article{10.1145/1189762.1206075,
+author = {Wald, Ingo and Boulos, Solomon and Shirley, Peter},
+title = {Ray tracing deformable scenes using dynamic bounding volume hierarchies},
+year = {2007},
+issue_date = {January 2007},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {26},
+number = {1},
+issn = {0730-0301},
+url = {https://doi.org/10.1145/1189762.1206075},
+doi = {10.1145/1189762.1206075},
+abstract = {The most significant deficiency of most of today's interactive ray tracers is that they are restricted to static walkthroughs. This restriction is due to the static nature of the acceleration structures used. While the best reported frame rates for static geometric models have been achieved using carefully constructed kd-trees, this article shows that bounding volume hierarchies (BVHs) can be used to efficiently ray trace large static models.More importantly, the BVH can be used to ray trace deformable models (sets of triangles whose positions change over time) with little loss of performance. A variety of efficiency techniques are used to achieve this performance, but three algorithmic changes to the typical BVH algorithm are mainly responsible. First, the BVH is built using a variant of the surface area heuristic conventionally used to build kd-trees. Second, the topology of the BVH is not changed over time so that only the bounding volumes need to be refit from frame-to-frame. Third, and most importantly, packets of rays are traced together through the BVH using a novel integrated packet-frustum traversal scheme. This traversal scheme elegantly combines the advantages of both packet traversal and frustum traversal and allows for rapid hierarchy descent for packets that hit bounding volumes as well as rapid exits for packets that miss. A BVH-based ray tracing system using these techniques is shown to achieve performance for deformable models comparable to that previously available only for static models.},
+journal = {ACM Trans. Graph.},
+month = jan,
+pages = {6 -- es},
+numpages = {18}
+}
+
+
+@article{10.1145/37402.37422,
+author = {Lorensen, William E. and Cline, Harvey E.},
+title = {Marching cubes: A high resolution 3D surface construction algorithm},
+year = {1987},
+issue_date = {July 1987},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {21},
+number = {4},
+issn = {0097-8930},
+url = {https://doi.org/10.1145/37402.37422},
+doi = {10.1145/37402.37422},
+abstract = {We present a new algorithm, called marching cubes, that creates triangle models of constant density surfaces from 3D medical data. Using a divide-and-conquer approach to generate inter-slice connectivity, we create a case table that defines triangle topology. The algorithm processes the 3D medical data in scan-line order and calculates triangle vertices using linear interpolation. We find the gradient of the original data, normalize it, and use it as a basis for shading the models. The detail in images produced from the generated surface models is the result of maintaining the inter-slice connectivity, surface data, and gradient information present in the original 3D data. Results from computed tomography (CT), magnetic resonance (MR), and single-photon emission computed tomography (SPECT) illustrate the quality and functionality of marching cubes. We also discuss improvements that decrease processing time and add solid modeling capabilities.},
+journal = {SIGGRAPH Comput. Graph.},
+month = aug,
+pages = {163 -- 169},
+numpages = {7}
+}
+
+
+
+
+@article{Campos_2021,
+   title={ORB-SLAM3: An Accurate Open-Source Library for Visual, Visual -- Inertial, and Multimap SLAM},
+   volume={37},
+   ISSN={1941-0468},
+   url={http://dx.doi.org/10.1109/TRO.2021.3075644},
+   DOI={10.1109/tro.2021.3075644},
+   number={6},
+   journal={IEEE Transactions on Robotics},
+   publisher={Institute of Electrical and Electronics Engineers (IEEE)},
+   author={Campos, Carlos and Elvira, Richard and Rodriguez, Juan J. Gomez and M. Montiel, Jose M. and D. Tardos, Juan},
+   year={2021},
+   month=dec, pages={1874 -- 1890} }
+
+@inproceedings{Oleynikova_2017,
+   title={Voxblox: Incremental 3D Euclidean Signed Distance Fields for on-board MAV planning},
+   url={http://dx.doi.org/10.1109/IROS.2017.8202315},
+   DOI={10.1109/iros.2017.8202315},
+   booktitle={2017 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
+   publisher={IEEE},
+   author={Oleynikova, Helen and Taylor, Zachary and Fehr, Marius and Siegwart, Roland and Nieto, Juan},
+   year={2017},
+   month=sep, pages={1366 -- 1373} }
+
+@INPROCEEDINGS{5979949,
+  author={Kümmerle, Rainer and Grisetti, Giorgio and Strasdat, Hauke and Konolige, Kurt and Burgard, Wolfram},
+  booktitle={2011 IEEE International Conference on Robotics and Automation}, 
+  title={G2o: A general framework for graph optimization}, 
+  year={2011},
+  volume={},
+  number={},
+  pages={3607-3613},
+  keywords={Optimization;Simultaneous localization and mapping;Sparse matrices;Jacobian matrices;Barium;Linear systems},
+  doi={10.1109/ICRA.2011.5979949}}
+
+
+
+@inproceedings{ARAP_modeling:2007,
+author = {Olga Sorkine and Marc Alexa},
+title = {As-Rigid-As-Possible Surface Modeling},
+booktitle = {Proceedings of EUROGRAPHICS/ACM SIGGRAPH Symposium on Geometry Processing},
+year = {2007},
+pages = {109--116},
+}
+
+
+
+@misc{Anonymous24,
+ author = {Anonymous},
+ title = {The frobnicatable foo filter},
+ note = {{ECCV} submission ID 00324, supplied as supplemental material {\tt 00324.pdf}},
+ year = 2024
+}
+
+@misc{Anonymous24b,
+ author = {Anonymous},
+ title = {Frobnication tutorial},
+ note = {Supplied as supplemental material {\tt tr.pdf}},
+ year = 2024
+}
+
+@article{Alpher02,
+author = {FirstName Alpher},
+title = {Frobnication},
+journal = PAMI,
+volume = 12,
+number = 1,
+pages = {234--778},
+year = 2002
+}
+
+@article{Alpher03,
+author = {FirstName Alpher and FirstName Fotheringham-Smythe},
+title = {Frobnication revisited},
+journal = {Journal of Foo},
+volume = 13,
+number = 1,
+pages = {234--778},
+year = 2003
+}
+
+@article{Alpher04,
+author = {FirstName Alpher and FirstName Fotheringham-Smythe and FirstName Gamow},
+title = {Can a machine frobnicate?},
+journal = {Journal of Foo},
+volume = 14,
+number = 1,
+pages = {234--778},
+year = 2004
+}
+
+@inproceedings{Alpher05,
+author = {FirstName Alpher and FirstName Gamow},
+title = {Can a computer frobnicate?},
+booktitle = CVPR,
+pages = {234--778},
+year = 2005
+}
+
+@book{ECCV2022,
+    editor = {Shai Avidan and Gabriel Brostow and Moustapha Cissé and Giovanni Maria Farinella and Tal Hassner},
+    title = {Computer Vision -- ECCV 2022},
+    year = {2022},
+    publisher = {Springer},
+    doi = {10.1007/978-3-031-19769-7}
+}
+
+% ---------------------------------------------------------------
+% Related Work References
+% ---------------------------------------------------------------
+
+@inproceedings{newcombe2011kinectfusion,
+  author    = {Newcombe, Richard A. and Izadi, Shahram and Hilliges, Otmar and Molyneaux, David and Kim, David and Davison, Andrew J. and Kohli, Pushmeet and Shotton, Jamie and Hodges, Steve and Fitzgibbon, Andrew},
+  title     = {{KinectFusion}: Real-Time Dense Surface Mapping and Tracking},
+  booktitle = {IEEE International Symposium on Mixed and Augmented Reality (ISMAR)},
+  pages     = {127--136},
+  year      = {2011},
+  doi       = {10.1109/ISMAR.2011.6092378}
+}
+
+@article{whelan2016elasticfusion,
+  author    = {Whelan, Thomas and Salas-Moreno, Renato F. and Glocker, Ben and Davison, Andrew J. and Leutenegger, Stefan},
+  title     = {{ElasticFusion}: Real-Time Dense {SLAM} and Light Source Estimation},
+  journal   = {The International Journal of Robotics Research},
+  volume    = {35},
+  number    = {14},
+  pages     = {1697--1716},
+  year      = {2016},
+  doi       = {10.1177/0278364916669237}
+}
+
+@article{whelan2015kintinuous,
+  author    = {Whelan, Thomas and Kaess, Michael and Johannsson, Hordur and Fallon, Maurice and Leonard, John J. and McDonald, John},
+  title     = {Real-time large-scale dense {RGB-D SLAM} with volumetric fusion},
+  journal   = {The International Journal of Robotics Research},
+  volume    = {34},
+  number    = {4-5},
+  pages     = {598--626},
+  year      = {2015},
+  doi       = {10.1177/0278364914551008}
+}
+
+@inproceedings{han2018flashfusion,
+  author    = {Han, Lei and Fang, Lu},
+  title     = {{FlashFusion}: Real-time Globally Consistent Dense {3D} Reconstruction using {CPU} Computing},
+  booktitle = {Robotics: Science and Systems (RSS)},
+  year      = {2018},
+  doi       = {10.15607/RSS.2018.XIV.006}
+}
+
+@article{reijgwart2020voxgraph,
+  author    = {Reijgwart, Victor and Millane, Alexander and Oleynikova, Helen and Siegwart, Roland and Cadena, César and Nieto, Juan},
+  title     = {{Voxgraph}: Globally Consistent, Volumetric Mapping using Signed Distance Function Submaps},
+  journal   = {IEEE Robotics and Automation Letters},
+  volume    = {5},
+  number    = {1},
+  pages     = {227--234},
+  year      = {2020},
+  doi       = {10.1109/LRA.2019.2953272}
+}
+
+@inproceedings{slavcheva2017killingfusion,
+  author    = {Slavcheva, Miroslava and Baust, Maximilian and Cremers, Daniel and Ilic, Slobodan},
+  title     = {{KillingFusion}: Non-rigid {3D} Reconstruction without Correspondences},
+  booktitle = CVPR,
+  pages     = {1386--1395},
+  year      = {2017},
+  doi       = {10.1109/CVPR.2017.155}
+}
+
+@inproceedings{innmann2016volumedeform,
+  author    = {Innmann, Matthias and Zollhöfer, Michael and Nießner, Matthias and Theobalt, Christian and Stamminger, Marc},
+  title     = {{VolumeDeform}: Real-time Volumetric Non-rigid Reconstruction},
+  booktitle = ECCV,
+  pages     = {362--379},
+  year      = {2016},
+  doi       = {10.1007/978-3-319-46484-8_22}
+}
+
+@inproceedings{sucar2021imap,
+  author    = {Sucar, Edgar and Liu, Shikun and Ortiz, Joseph and Davison, Andrew J.},
+  title     = {{iMAP}: Implicit Mapping and Positioning in Real-Time},
+  booktitle = ICCV,
+  pages     = {6229--6238},
+  year      = {2021},
+  doi       = {10.1109/ICCV48922.2021.00617}
+}
+
+@inproceedings{zhu2022niceslam,
+  author    = {Zhu, Zihan and Peng, Songyou and Larsson, Viktor and Xu, Weiwei and Bao, Hujun and Cui, Zhaopeng and Oswald, Martin R. and Pollefeys, Marc},
+  title     = {{NICE-SLAM}: Neural Implicit Scalable Encoding for {SLAM}},
+  booktitle = CVPR,
+  pages     = {12786--12796},
+  year      = {2022},
+  doi       = {10.1109/CVPR52688.2022.01245}
+}
+
+@inproceedings{liso2024loopyslam,
+  author    = {Liso, Lorenzo and Sandström, Erik and Yugay, Vladimir and Van Gool, Luc and Oswald, Martin R.},
+  title     = {Loopy-{SLAM}: Dense Neural {SLAM} with Loop Closures},
+  booktitle = CVPR,
+  pages     = {20363--20373},
+  year      = {2024},
+  doi       = {10.1109/CVPR52733.2024.01923}
+}
+
+@misc{bruns2024neuralgraphmap,
+  author    = {Bruns, Leonard and Zhang, Jun and Jensfelt, Patric},
+  title     = {Neural Graph Map: Dense Mapping with Efficient Loop Closure Integration},
+  year      = {2024},
+  eprint    = {2405.03633},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.CV}
+}
+
+@article{vizzo2022vdbfusion,
+  author    = {Vizzo, Ignacio and Guadagnino, Tiziano and Mersch, Benedikt and Nardi, Luigi and Behley, Jens and Stachniss, Cyrill},
+  title     = {{VDBFusion}: Flexible and Efficient {TSDF} Integration of Range Sensor Data},
+  journal   = {Sensors},
+  volume    = {22},
+  number    = {3},
+  pages     = {1296},
+  year      = {2022},
+  doi       = {10.3390/s22031296}
+}
+
+@inproceedings{cui2023ngelslam,
+  author    = {Mao, Yunxuan and Yu, Xuan and Wang, Kai and Wang, Yue and Xiong, Rong and Liao, Yiyi},
+  title     = {{NGEL-SLAM}: Neural Implicit Representation-based Global Consistent Low-Latency {SLAM} System},
+  booktitle = {IEEE International Conference on Robotics and Automation (ICRA)},
+  pages     = {11728--11734},
+  year      = {2024},
+  doi       = {10.1109/ICRA57147.2024.10611269}
+}
+
+@misc{libigl,
+  author    = {Jacobson, Alec and Panozzo, Daniele and others},
+  title     = {libigl: A Simple {C++} Geometry Processing Library},
+  year      = {2018},
+  url       = {https://libigl.github.io/}
+}
+
+@article{10.1145/2601097.2601199,
+  author    = {Wald, Ingo and Woop, Sven and Benthin, Carsten and Johnson, Gregory S. and Ernst, Manfred},
+  title     = {Embree: A Kernel Framework for Efficient {CPU} Ray Tracing},
+  journal   = {ACM Trans. Graph.},
+  volume    = {33},
+  number    = {4},
+  articleno = {143},
+  year      = {2014},
+  doi       = {10.1145/2601097.2601199}
+}
+
+@article{tian23arxiv_kimeramultiexperiments,
+  author    = {Tian, Yulun and Chang, Yun and Arias, Luca and Nieto-Granda, Carlos and How, Jonathan P. and Carlone, Luca},
+  title     = {Kimera-Multi: Robust, Distributed, Dense Metric-Semantic {SLAM} for Multi-Robot},
+  journal   = {IEEE Transactions on Robotics},
+  volume    = {39},
+  number    = {4},
+  pages     = {2949--2966},
+  year      = {2023},
+  doi       = {10.1109/TRO.2023.3271820}
+}
+
+@article{Geiger2013IJRR,
+  author    = {Geiger, Andreas and Lenz, Philip and Stiller, Christoph and Urtasun, Raquel},
+  title     = {Vision meets Robotics: The {KITTI} Dataset},
+  journal   = {The International Journal of Robotics Research},
+  volume    = {32},
+  number    = {11},
+  pages     = {1231--1237},
+  year      = {2013},
+  doi       = {10.1177/0278364913491297}
+}
+
+@article{reijgwart2023wavemap,
+  author    = {Reijgwart, Victor and Cadena, C\'esar and Siegwart, Roland and Ott, Lionel},
+  title     = {Wavemap: Efficient Volumetric Mapping with Hierarchical Wavelet Compression},
+  journal   = {IEEE Robotics and Automation Letters},
+  year      = {2024},
+  volume    = {9},
+  number    = {8},
+  pages     = {7260--7267},
+  doi       = {10.1109/LRA.2024.3377050}
+}
+
+@inproceedings{10.1145/3072959.3073599,
+  author    = {Knapitsch, Arno and Park, Jaesik and Zhou, Qian-Yi and Koltun, Vladlen},
+  title     = {Tanks and Temples: Benchmarking Large-Scale Scene Reconstruction},
+  booktitle = {ACM Trans. Graph.},
+  volume    = {36},
+  number    = {4},
+  articleno = {78},
+  year      = {2017},
+  doi       = {10.1145/3072959.3073599}
+}
+
+@misc{millane2018cbloxscalableconsistenttsdfbased,
+      title={C-blox: A Scalable and Consistent TSDF-based Dense Mapping Approach}, 
+      author={Alexander Millane and Zachary Taylor and Helen Oleynikova and Juan Nieto and Roland Siegwart and César Cadena},
+      year={2018},
+      eprint={1710.07242},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO},
+      url={https://arxiv.org/abs/1710.07242}, 
+}
+
+
+
+
+@misc{rosinol2021kimeraslamspatialperception,
+      title={Kimera: from SLAM to Spatial Perception with 3D Dynamic Scene Graphs}, 
+      author={Antoni Rosinol and Andrew Violette and Marcus Abate and Nathan Hughes and Yun Chang and Jingnan Shi and Arjun Gupta and Luca Carlone},
+      year={2021},
+      eprint={2101.06894},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO},
+      url={https://arxiv.org/abs/2101.06894}, 
+}
+
+
+
+
+@article{Cramariuc_2023,
+   title={maplab 2.0 – A Modular and Multi-Modal Mapping Framework},
+   volume={8},
+   ISSN={2377-3774},
+   url={http://dx.doi.org/10.1109/LRA.2022.3227865},
+   DOI={10.1109/lra.2022.3227865},
+   number={2},
+   journal={IEEE Robotics and Automation Letters},
+   publisher={Institute of Electrical and Electronics Engineers (IEEE)},
+   author={Cramariuc, Andrei and Bernreiter, Lukas and Tschopp, Florian and Fehr, Marius and Reijgwart, Victor and Nieto, Juan and Siegwart, Roland and Cadena, Cesar},
+   year={2023},
+   month=feb, pages={520–527} }
+
+
+@misc{tatarchenko2019singleview3dreconstructionnetworks,
+      title={What Do Single-view 3D Reconstruction Networks Learn?}, 
+      author={Maxim Tatarchenko and Stephan R. Richter and René Ranftl and Zhuwen Li and Vladlen Koltun and Thomas Brox},
+      year={2019},
+      eprint={1905.03678},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/1905.03678}, 
+}
+
+@conference{Zhang-2014-7903,
+author = {Ji Zhang and Sanjiv Singh},
+title = {LOAM: Lidar Odometry and Mapping in Real-time},
+booktitle = {Proceedings of Robotics: Science and Systems (RSS '14)},
+year = {2014},
+month = {July},
+}
+
+@INPROCEEDINGS{8594299,
+  author={Shan, Tixiao and Englot, Brendan},
+  booktitle={2018 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)}, 
+  title={LeGO-LOAM: Lightweight and Ground-Optimized Lidar Odometry and Mapping on Variable Terrain}, 
+  year={2018},
+  volume={},
+  number={},
+  pages={4758-4765},
+  keywords={Feature extraction;Three-dimensional displays;Laser radar;Image segmentation;Pose estimation;Real-time systems;Iterative closest point algorithm},
+  doi={10.1109/IROS.2018.8594299}}
+
+% ============================================================================
+% RA-L ADDITIONAL REFERENCES.
+% ============================================================================
+
+@inproceedings{garland1997qem,
+  author    = {Garland, Michael and Heckbert, Paul S.},
+  title     = {Surface Simplification Using Quadric Error Metrics},
+  booktitle = {Proceedings of the 24th Annual Conference on Computer Graphics and Interactive Techniques},
+  series    = {SIGGRAPH '97},
+  year      = {1997},
+  pages     = {209--216},
+  publisher = {ACM Press/Addison-Wesley Publishing Co.},
+  address   = {USA},
+  doi       = {10.1145/258734.258849},
+  url       = {https://doi.org/10.1145/258734.258849}
+}
+
+@article{kerbl2023gaussians,
+  author    = {Kerbl, Bernhard and Kopanas, Georgios and Leimkuehler, Thomas and Drettakis, George},
+  title     = {{3D} Gaussian Splatting for Real-Time Radiance Field Rendering},
+  journal   = {ACM Transactions on Graphics},
+  volume    = {42},
+  number    = {4},
+  year      = {2023},
+  articleno = {139},
+  numpages  = {14},
+  doi       = {10.1145/3592433},
+  url       = {https://doi.org/10.1145/3592433}
+}
+
+@inproceedings{keetha2024splatam,
+  author    = {Keetha, Nikhil and Karhade, Jay and Jatavallabhula, Krishna Murthy and Yang, Gengshan and Scherer, Sebastian and Ramanan, Deva and Luiten, Jonathon},
+  title     = {{SplaTAM}: Splat, Track \& Map {3D} Gaussians for Dense {RGB-D} {SLAM}},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+  year      = {2024}
+}
+
+@inproceedings{zhu2025loopsplat,
+  author    = {Zhu, Liyuan and Li, Yue and Sandstr{\"o}m, Erik and Huang, Shengyu and Schindler, Konrad and Armeni, Iro},
+  title     = {{LoopSplat}: Loop Closure by Registering {3D} Gaussian Splats},
+  booktitle = {International Conference on 3D Vision},
+  year      = {2025}
+}
+
+@article{kimera_pgmo,
+  author  = {Rosinol, Antoni and Violette, Andrew and Abate, Marcus and Hughes, Nathan and Chang, Yun and Shi, Jingnan and Gupta, Arjun and Carlone, Luca},
+  title   = {Kimera: From {SLAM} to Spatial Perception with {3D} Dynamic Scene Graphs},
+  journal = {The International Journal of Robotics Research},
+  volume  = {40},
+  number  = {12--14},
+  pages   = {1510--1546},
+  year    = {2021},
+  doi     = {10.1177/02783649211056674}
+}
+
+@inproceedings{yao2020welsch,
+  author    = {Yao, Yuxin and Deng, Bailin and Xu, Weiwei and Zhang, Juyong},
+  title     = {Quasi-Newton Solver for Robust Non-Rigid Registration},
+  booktitle = {2020 IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+  year      = {2020},
+  pages     = {7597--7606},
+  doi       = {10.1109/CVPR42600.2020.00762}
+}
+
+@article{aigerman2013bounded,
+  author    = {Aigerman, Noam and Lipman, Yaron},
+  title     = {Injective and Bounded Distortion Mappings in {3D}},
+  journal   = {ACM Transactions on Graphics},
+  volume    = {32},
+  number    = {4},
+  year      = {2013},
+  articleno = {106},
+  numpages  = {14},
+  doi       = {10.1145/2461912.2461931},
+  url       = {https://doi.org/10.1145/2461912.2461931}
+}
+
+@article{sussman1999redistancing,
+  author  = {Sussman, Mark and Fatemi, Emad},
+  title   = {An Efficient, Interface-Preserving Level Set Redistancing Algorithm and Its Application to Interfacial Incompressible Fluid Flow},
+  journal = {SIAM Journal on Scientific Computing},
+  volume  = {20},
+  number  = {4},
+  pages   = {1165--1191},
+  year    = {1999},
+  doi     = {10.1137/S1064827596298245},
+  url     = {https://doi.org/10.1137/S1064827596298245}
+}
+
+@article{shoemake1985slerp,
+  author    = {Shoemake, Ken},
+  title     = {Animating Rotation with Quaternion Curves},
+  journal   = {SIGGRAPH Computer Graphics},
+  volume    = {19},
+  number    = {3},
+  pages     = {245--254},
+  year      = {1985},
+  doi       = {10.1145/325165.325242},
+  url       = {https://doi.org/10.1145/325165.325242}
+}
+
+@article{schoenemann1966procrustes,
+  author  = {Sch{\"o}nemann, Peter H.},
+  title   = {A Generalized Solution of the Orthogonal Procrustes Problem},
+  journal = {Psychometrika},
+  volume  = {31},
+  pages   = {1--10},
+  year    = {1966},
+  url     = {https://api.semanticscholar.org/CorpusID:121676935}
+}
+
+@inproceedings{rossignac1993vertexclustering,
+  author    = {Rossignac, Jarek and Borrel, Paul},
+  editor    = {Falcidieno, Bianca and Kunii, Tosiyasu L.},
+  title     = {Multi-Resolution {3D} Approximations for Rendering Complex Scenes},
+  booktitle = {Modeling in Computer Graphics},
+  year      = {1993},
+  publisher = {Springer Berlin Heidelberg},
+  address   = {Berlin, Heidelberg},
+  pages     = {455--465},
+  isbn      = {978-3-642-78114-8}
+}
+
+@inproceedings{sorkine2004laplacian,
+  author    = {Sorkine, O. and Cohen-Or, D. and Lipman, Y. and Alexa, M. and R{\"o}ssl, C. and Seidel, H.-P.},
+  title     = {Laplacian Surface Editing},
+  booktitle = {Proceedings of the 2004 Eurographics/ACM SIGGRAPH Symposium on Geometry Processing},
+  series    = {SGP '04},
+  year      = {2004},
+  pages     = {175--184},
+  publisher = {Association for Computing Machinery},
+  address   = {New York, NY, USA},
+  doi       = {10.1145/1057432.1057456},
+  url       = {https://doi.org/10.1145/1057432.1057456}
+}
+
+@article{sumner2004deformationtransfer,
+  author    = {Sumner, Robert W. and Popovi{\'c}, Jovan},
+  title     = {Deformation Transfer for Triangle Meshes},
+  journal   = {ACM Transactions on Graphics},
+  volume    = {23},
+  number    = {3},
+  pages     = {399--405},
+  year      = {2004},
+  doi       = {10.1145/1015706.1015736},
+  url       = {https://doi.org/10.1145/1015706.1015736}
+}

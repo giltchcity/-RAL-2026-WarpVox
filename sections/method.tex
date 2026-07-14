@@ -1,0 +1,229 @@
+\section{Method}
+\label{sec:method}
+
+\noindent\textbf{Assumptions.}
+Following the local-consistency assumption of
+Voxgraph~\cite{reijgwart2020voxgraph}, we assume that TSDF fusion under the
+drifted pre-correction trajectory remains locally valid: surface geometry and
+connectivity are locally coherent although the map is globally inconsistent.
+WarpVox corrects this global inconsistency after loop closure; severely noisy
+or topologically corrupted pre-correction maps are outside its scope.
+
+\subsection{Problem and Streaming State}
+
+Let $T_i^- ,T_i^+\in SE(3)$ map the sensor frame $S_i$ to the
+world frame before and after a trajectory correction.  The map built with
+$\{T_i^-\}$ consists of a TSDF $\Phi^-$, its weight field $w^-$,
+voxel size $s$, and truncation distance $\tau$.  Marching Cubes
+(MC)~\cite{10.1145/37402.37422} extracts the source surface
+$\mathcal M^-=(V^-,F)$.
+
+During normal fusion, WarpVox maintains bounded, timestamped support records.
+For an active source vertex $v_j^-$,
+\begin{equation}
+\mathcal O_j=\{(t_i,m_{ij},a_{ij},c_{ij})\},
+\qquad |\mathcal O_j|\le n_{\max},
+\label{eq:records}
+\end{equation}
+where $m_{ij}$ is a calibrated surface sample expressed in $S_i$,
+$a_{ij}$ is its association weight, and $c_{ij}$ is its retained confidence.
+The records are organized by acquisition time, not by trajectory row index.
+The record contract admits a streaming realization: before MC extraction,
+bounded samples are keyed by active TSDF support, and surface extraction
+resolves them to the vertex-indexed form in Eq.~\eqref{eq:records} without
+retaining the depth stream.  Given these records, WarpVox implements
+the map-correction contract
+\begin{equation}
+(\Phi^-,w^-,\mathcal M^-,\{T_i^+\},\mathcal O)
+\longmapsto \Phi^+,
+\label{eq:contract}
+\end{equation}
+where the warped mesh is an intermediate representation and $\Phi^+$ is a
+standard Voxblox volume.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{Figures/pipeline_v5.jpg}
+  \caption{WarpVox maintains bounded vertex--observation associations during
+  fusion, computes corrected surface targets after trajectory correction,
+  deforms the source surface once, and transfers source-volume support to a
+  corrected TSDF.}
+  \label{fig:pipeline}
+\end{figure}
+
+\subsection{Observation Association and Surface Targets}
+
+For RGB-D, pixel $\bar u=[u,v,1]^\top$ with measured z-depth $z_{ij}$
+defines the invariant sensor-frame sample
+\begin{equation}
+m_{ij}=z_{ij}K^{-1}\bar u.
+\label{eq:sensor_sample}
+\end{equation}
+The pre-correction pose projects the source vertex into frame $i$, with a
+mesh BVH~\cite{10.1145/1189762.1206075} rejecting occluded projections.  Let
+$e^g_{ij}=\|[T_i^-\widetilde m_{ij}]_{1:3}-v_j^-\|$ be the 3D
+disagreement, $e^z_{ij}$ the projected-versus-measured depth residual, and
+$g_{ij}=|n_j^\top r_{ij}|$ the viewing-angle factor.  We use
+\begin{equation}
+a_{ij}=
+\exp\!\left(-\frac{e^g_{ij}}{\sigma_g}\right)
+\exp\!\left(-\frac{|e^z_{ij}|}{\sigma_z}\right)
+\frac{g_{ij}}{1+z^{\rm proj}_{ij}/z_0},
+\label{eq:association_weight}
+\end{equation}
+subject to a depth-dependent geometric gate and a minimum weight.  LiDAR uses
+the same construction with spherical projection and radial range.  This is a
+geometric support association rather than exact voxel-integration provenance.
+
+After loop closure, the timestamp selects the corrected pose. For a missing
+interior pose, translation is interpolated linearly and rotation by bounded
+quaternion interpolation~\cite{shoemake1985slerp}. The same local sample then
+defines the corrected target
+\begin{equation}
+q_{ij}^+=\left[T_i^+\widetilde m_{ij}\right]_{1:3},
+\qquad \widetilde m_{ij}=[m_{ij}^\top,1]^\top.
+\label{eq:corrected_target}
+\end{equation}
+Equation~\eqref{eq:corrected_target} is exact when the static-scene
+association, calibration, and corrected pose are valid. Multiple target
+candidates are aggregated robustly. With
+$\omega_{ij}=a_{ij}c_{ij}/(1+z_{ij}/z_t)$, first compute
+$\bar q_j=\sum_i\omega_{ij}q_{ij}^+/\sum_i\omega_{ij}$ and retain
+\begin{equation}
+I_j=\left\{i:\|q_{ij}^+-\bar q_j\|
+\le \max\!\left(\epsilon_t,
+\kappa_t\operatorname*{median}_{k}\|q_{kj}^+-\bar q_j\|\right)\right\}.
+\label{eq:target_inliers}
+\end{equation}
+When fewer than three candidates are available, all are retained.  The target
+and its observable dispersion are then
+\begin{equation}
+v_j^*=\frac{\sum_{i\in I_j}\omega_{ij}q_{ij}^+}
+                 {\sum_{i\in I_j}\omega_{ij}},
+\qquad
+\sigma_j^2=\frac{\sum_{i\in I_j}\omega_{ij}
+\|q_{ij}^+-v_j^*\|^2}{\sum_{i\in I_j}\omega_{ij}}.
+\label{eq:target}
+\end{equation}
+For any $r>0$, weighted Markov inequality bounds the retained weight outside
+radius $r$ by $\sigma_j^2/r^2$.  This measures candidate agreement; it does
+not certify a mutually consistent but incorrect association.
+
+\subsection{One-Shot Surface Deformation}
+
+Let $d_j=v_j^*-v_j^-$ denote an accepted control displacement.  A local
+source-surface predictor suppresses isolated controls before deformation:
+\begin{equation}
+\widehat d_j=
+\frac{\sum_{k\in\mathcal N_j}(\|v_j^--v_k^-\|^2+\varepsilon)^{-1}d_k}
+     {\sum_{k\in\mathcal N_j}(\|v_j^--v_k^-\|^2+\varepsilon)^{-1}},
+\qquad \delta_j=\|d_j-\widehat d_j\|.
+\label{eq:control_filter}
+\end{equation}
+The neighbourhood is restricted to the same connected component when enough
+support exists, and a median--MAD rule rejects large $\delta_j$.
+
+To make the solve depend on surface complexity rather than raw frame count,
+component-separated spatial clustering~\cite{rossignac1993vertexclustering}
+selects QEM representatives~\cite{garland1997qem} to construct a proxy
+$\mathcal P^-=(P^-,E_P)$. Accepted surface targets are aggregated on this proxy.
+Robust local rigid consensus computes weighted orthogonal-Procrustes
+fits~\cite{schoenemann1966procrustes} with bounded Welsch
+influence~\cite{yao2020welsch}, supplies synthetic support, and replaces a grossly
+inconsistent measured proxy target only when a strict component majority
+supports the replacement.  The proxy deformation solves the cotangent
+ARAP problem~\cite{ARAP_modeling:2007,10.1007/978-3-662-05105-4_2,libigl}
+\begin{equation}
+\begin{aligned}
+\min_{P^+,\{R_a\in SO(3)\}}
+&\sum_{(a,b)\in E_P}c_{ab}
+\left\|(p_a^+-p_b^+)-R_a(p_a^--p_b^-)\right\|^2,\\
+\text{s.t.}\quad &p_c^+=p_c^*,\qquad c\in\mathcal C_P .
+\end{aligned}
+\label{eq:arap}
+\end{equation}
+Thus the accepted proxy targets are hard positional constraints, while ARAP
+interpolates the unconstrained surface.  WarpVox performs one
+proxy solve, transfers displacement to $V^-$ by topology-local interpolation,
+and assigns an unconstrained component the median motion of its nearest valid
+controls.  A bounded harmonic repair pass~\cite{sorkine2004laplacian} smooths
+only faces with extreme edge stretch, area expansion, or aspect ratio; fixed dimensionless distortion
+checks~\cite{aigerman2013bounded} omit unresolved faces.  Hence
+the retained source and warped surfaces satisfy
+\begin{equation}
+\bar{\mathcal M}^-=(\bar V^-,\bar F),\qquad
+\mathcal M^+=(\bar V^+,\bar F),\qquad \bar F\subseteq F.
+\label{eq:retained_topology}
+\end{equation}
+
+For a source point $x$ and its nearest retained control $c$, let $h$ be their
+geodesic distance and $e_c$ the control-target error.  If the ideal and
+estimated displacement fields are locally Lipschitz with constants $L_*$ and
+$\widehat L$, the hard constraint at $c$ gives
+\begin{equation}
+\|\widehat f(x)-f^*(x)\|
+\le e_c+(L_*+\widehat L)h.
+\label{eq:conditional_bound}
+\end{equation}
+This decomposition makes the assumptions explicit: association and target
+estimation determine $e_c$, while surface coverage controls $h$; the unknown
+$e_c$ and $L_*$ prevent an unconditional error certificate.
+
+\subsection{Source-Supported TSDF Reconstruction}
+
+The warped surface defines the corrected zero set~\cite{sussman1999redistancing},
+while the source TSDF
+provides observed-space semantics.  For output voxel center $x$, a
+closest-triangle query~\cite{10.1145/2601097.2601199} on $\mathcal M^+$
+returns face $f$, closest point $q^+$, and barycentric coordinates $\beta$.
+Shared face indices define a source/warped triangle-frame correspondence
+motivated by deformation transfer~\cite{sumner2004deformationtransfer} and locate the corresponding source point
+$q^-=\sum_{k\in f}\beta_k\bar v_k^-$.  With corresponding unit normals
+$n_f^+$ and $n_f^-$, define
+\begin{equation}
+\eta=(x-q^+)^\top n_f^+,
+\qquad x^-=q^-+\eta n_f^-.
+\label{eq:inverse_map}
+\end{equation}
+When $\Phi^-$ is supported at $x^-$, WarpVox combines warped geometry with
+source orientation and confidence:
+\begin{equation}
+\begin{aligned}
+|\Phi^+(x)|&=\min(\tau,\|x-q^+\|),\\
+\operatorname{sgn}\Phi^+(x)&=
+\operatorname{sgn}\!\left(\eta\,\partial_{n_f^-}\Phi^-(q^-)\right),\\
+w^+(x)&=\widetilde w^-(x^-).
+\end{aligned}
+\label{eq:hybrid_tsdf}
+\end{equation}
+Writing $d(x)=\|x-q^+\|$, unsupported voxels receive only a finite extraction
+band,
+\begin{equation}
+w_{\rm fb}(x)=
+\begin{cases}
+1, & d(x)\le0.5s,\\
+(1.5s-d(x))/s, & 0.5s<d(x)\le1.5s,\\
+0, & d(x)>1.5s,
+\end{cases}
+\label{eq:fallback_weight}
+\end{equation}
+and transferred support beyond this band must connect to it without adding a
+new sign crossing.  The resulting $\Phi^+$ is serialized as a native Voxblox
+TSDF; its MC mesh is used only for visualization and evaluation.
+
+\subsection{Complexity and Scope}
+
+Let $A$, $P$, and $X^+$ denote the numbers of active surface-support elements,
+proxy vertices, and allocated output voxels.  For the streaming realization
+above, the state and loop-time computation satisfy
+\begin{equation}
+\begin{aligned}
+S_{\rm stream}&=O(n_{\max}A),\\
+C_{\rm corr}&=O(n_{\max}A)+C_{\rm ARAP}(P,E_P)+O(X^+).
+\end{aligned}
+\label{eq:complexity}
+\end{equation}
+The accumulated frame count $N$ does not occur: each active support retains at
+most $n_{\max}$ records, and the remaining work follows the proxy and output
+volume.  WarpVox therefore removes accumulated frame count from the correction
+complexity.
