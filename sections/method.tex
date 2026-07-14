@@ -30,7 +30,8 @@ $a_{ij}$ is its association weight, and $c_{ij}$ is its retained confidence.
 The records are organized by acquisition time, not by trajectory row index.
 The record contract admits a streaming realization: before MC extraction,
 bounded samples are keyed by active TSDF support, and surface extraction
-resolves them to the vertex-indexed form in Eq.~\eqref{eq:records} without
+resolves them to the vertex-indexed form in 
+Eq.~\eqref{eq:records} without
 retaining the depth stream.  Given these records, WarpVox implements
 the map-correction contract
 \begin{equation}
@@ -59,11 +60,37 @@ defines the invariant sensor-frame sample
 m_{ij}=z_{ij}K^{-1}\bar u.
 \label{eq:sensor_sample}
 \end{equation}
-The pre-correction pose projects the source vertex into frame $i$, with a
-mesh BVH~\cite{10.1145/1189762.1206075} rejecting occluded projections.  Let
+The pre-correction pose projects the source vertex into frame $i$.
+Candidate observations are retained through depth consistency,
+three-dimensional geometric agreement, and viewing-angle support.
+Let
 $e^g_{ij}=\|[T_i^-\widetilde m_{ij}]_{1:3}-v_j^-\|$ be the 3D
-disagreement, $e^z_{ij}$ the projected-versus-measured depth residual, and
-$g_{ij}=|n_j^\top r_{ij}|$ the viewing-angle factor.  We use
+disagreement, $e^z_{ij}$ the projected-versus-measured depth residual, and the viewing-angle factor.  For RGB-D, pixel $\bar u=[u,v,1]^\top$ with measured z-depth $z_{ij}$
+defines the invariant sensor-frame sample
+\begin{equation}
+m_{ij}=z_{ij}K^{-1}\bar u,
+\qquad
+\widetilde m_{ij}=[m_{ij}^\top,1]^\top.
+\label{eq:sensor_sample}
+\end{equation}
+The pre-correction pose projects the source vertex into frame $i$.
+Candidate observations are retained through depth consistency,
+three-dimensional geometric agreement, and viewing-angle support.
+Let $n_j^-$ denote the source-vertex normal and let $r_{ij}^-$ denote
+the unit viewing direction, both expressed in the pre-correction world
+frame.  We define
+\begin{equation}
+\begin{aligned}
+e^g_{ij}
+&=\left\|[T_i^-\widetilde m_{ij}]_{1:3}-v_j^-\right\|,\\
+e^z_{ij}
+&=z^{\rm proj}_{ij}-z_{ij},\\
+g_{ij}
+&=\left|(n_j^-)^\top r_{ij}^-\right|.
+\end{aligned}
+\label{eq:association_residuals}
+\end{equation}
+We use
 \begin{equation}
 a_{ij}=
 \exp\!\left(-\frac{e^g_{ij}}{\sigma_g}\right)
@@ -105,9 +132,19 @@ v_j^*=\frac{\sum_{i\in I_j}\omega_{ij}q_{ij}^+}
 \|q_{ij}^+-v_j^*\|^2}{\sum_{i\in I_j}\omega_{ij}}.
 \label{eq:target}
 \end{equation}
-For any $r>0$, weighted Markov inequality bounds the retained weight outside
-radius $r$ by $\sigma_j^2/r^2$.  This measures candidate agreement; it does
-not certify a mutually consistent but incorrect association.
+For any $r>0$, the fraction of retained weight outside radius $r$ satisfies
+\begin{equation}
+\frac{
+\sum_{\substack{i\in I_j:\\
+\|q_{ij}^+-v_j^*\|>r}}\omega_{ij}
+}{
+\sum_{i\in I_j}\omega_{ij}
+}
+\le \frac{\sigma_j^2}{r^2}.
+\label{eq:target_markov}
+\end{equation}
+This bound measures agreement among the retained candidates; it does not
+certify an association that is mutually consistent but incorrect.
 
 \subsection{One-Shot Surface Deformation}
 
@@ -136,19 +173,31 @@ ARAP problem~\cite{ARAP_modeling:2007,10.1007/978-3-662-05105-4_2,libigl}
 \begin{equation}
 \begin{aligned}
 \min_{P^+,\{R_a\in SO(3)\}}
-&\sum_{(a,b)\in E_P}c_{ab}
-\left\|(p_a^+-p_b^+)-R_a(p_a^--p_b^-)\right\|^2,\\
-\text{s.t.}\quad &p_c^+=p_c^*,\qquad c\in\mathcal C_P .
+&\frac{1}{2}
+\sum_{a=1}^{|P^-|}
+\sum_{b\in\mathcal N_P(a)}
+c_{ab}
+\left\|
+(p_a^+-p_b^+)-R_a(p_a^--p_b^-)
+\right\|^2,\\
+\text{s.t.}\quad
+&p_c^+=p_c^*,\qquad c\in\mathcal C_P ,
 \end{aligned}
 \label{eq:arap}
 \end{equation}
+Here $\mathcal N_P(a)$ is the one-ring proxy neighbourhood and
+$c_{ab}=c_{ba}\ge0$ are symmetric cotangent-derived edge weights; the
+factor $1/2$ removes double counting.
 Thus the accepted proxy targets are hard positional constraints, while ARAP
-interpolates the unconstrained surface.  WarpVox performs one
-proxy solve, transfers displacement to $V^-$ by topology-local interpolation,
-and assigns an unconstrained component the median motion of its nearest valid
-controls.  A bounded harmonic repair pass~\cite{sorkine2004laplacian} smooths
-only faces with extreme edge stretch, area expansion, or aspect ratio; fixed dimensionless distortion
-checks~\cite{aigerman2013bounded} omit unresolved faces.  Hence
+interpolates the unconstrained surface. WarpVox performs one proxy solve and transfers displacement to $V^-$ by
+topology-local interpolation.  For each unconstrained connected component,
+three gauge constraints receive the coordinate-wise median displacement of
+its nearest valid observation controls.  A bounded harmonic repair
+pass~\cite{sorkine2004laplacian} extends the displacement field only over
+vertices incident to faces with extreme edge stretch, area expansion, or
+aspect ratio.  Fixed dimensionless distortion
+checks~\cite{aigerman2013bounded} omit faces that remain unresolved.
+Hence
 the retained source and warped surfaces satisfy
 \begin{equation}
 \bar{\mathcal M}^-=(\bar V^-,\bar F),\qquad
@@ -178,26 +227,39 @@ closest-triangle query~\cite{10.1145/2601097.2601199} on $\mathcal M^+$
 returns face $f$, closest point $q^+$, and barycentric coordinates $\beta$.
 Shared face indices define a source/warped triangle-frame correspondence
 motivated by deformation transfer~\cite{sumner2004deformationtransfer} and locate the corresponding source point
-$q^-=\sum_{k\in f}\beta_k\bar v_k^-$.  With corresponding unit normals
-$n_f^+$ and $n_f^-$, define
+$q^-=\sum_{k\in f}\beta_k\bar v_k^-$.  Let
 \begin{equation}
-\eta=(x-q^+)^\top n_f^+,
-\qquad x^-=q^-+\eta n_f^-.
+R_f^\pm=
+\begin{bmatrix}
+t_{f,1}^\pm & t_{f,2}^\pm & n_f^\pm
+\end{bmatrix}\in SO(3)
+\end{equation}
+denote consistently oriented orthonormal frames of the corresponding source
+and warped triangles.  The output location is pulled back to the source volume
+by
+\begin{equation}
+x^-=q^-+R_f^-(R_f^+)^\top(x-q^+).
 \label{eq:inverse_map}
 \end{equation}
-When $\Phi^-$ is supported at $x^-$, WarpVox combines warped geometry with
-source orientation and confidence:
+This transport retains both tangential and normal offsets relative to the
+corresponding triangles.  When the trilinearly sampled source TSDF is supported
+at $x^-$, WarpVox combines its observed-space semantics with the metric
+distance to the warped surface:
 \begin{equation}
 \begin{aligned}
-|\Phi^+(x)|&=\min(\tau,\|x-q^+\|),\\
-\operatorname{sgn}\Phi^+(x)&=
-\operatorname{sgn}\!\left(\eta\,\partial_{n_f^-}\Phi^-(q^-)\right),\\
-w^+(x)&=\widetilde w^-(x^-).
+\Phi^+(x)
+&=
+\operatorname{sgn}!\left(\widetilde\Phi^-(x^-)\right)
+\min!\left(\tau,|x-q^+|\right),\
+w^+(x)&=\widetilde w^-(x^-),
 \end{aligned}
 \label{eq:hybrid_tsdf}
 \end{equation}
-Writing $d(x)=\|x-q^+\|$, unsupported voxels receive only a finite extraction
-band,
+where $\widetilde\Phi^-$ and $\widetilde w^-$ denote trilinear samples of the
+source distance and weight fields.
+Writing $d(x)=|x-q^+|$, let $\Omega_{\rm fb}$ denote unsupported
+interior interpolation holes that are locally connected to transferred source
+support.  Voxels in this restricted set receive the finite fallback band, 
 \begin{equation}
 w_{\rm fb}(x)=
 \begin{cases}
@@ -207,9 +269,12 @@ w_{\rm fb}(x)=
 \end{cases}
 \label{eq:fallback_weight}
 \end{equation}
-and transferred support beyond this band must connect to it without adding a
-new sign crossing.  The resulting $\Phi^+$ is serialized as a native Voxblox
-TSDF; its MC mesh is used only for visualization and evaluation.
+Voxels outside transferred support and $\Omega_{\rm fb}$ remain unknown.  In
+particular, fallback support is not introduced when the closest surface
+feature belongs to a topological open boundary, and any extension of
+transferred support must not introduce a new sign crossing.  The resulting
+$\Phi^+$ is serialized as a native Voxblox TSDF; its MC mesh is used only for
+visualization and evaluation.
 
 \subsection{Complexity and Scope}
 
