@@ -205,38 +205,39 @@ and separates deformation scale from the Stage 3 and Stage 4 design changes.
 at 0.25 m.}}
 \label{tab:ablation}
 \scriptsize
-\setlength{\tabcolsep}{1.5pt}
-\begin{tabular}{llrrrr}
+\setlength{\tabcolsep}{1.1pt}
+\begin{tabular}{@{}llrrrrr@{}}
 \toprule
-Component & Variant & F@10 & F@25 & F@50 & Time (s) \\
+Component & Variant & $n$ & F@10 & F@25 & F@50 & Core (s) \\
 \midrule
 \multirow{2}{*}{Scale}
- & Full-mesh ARAP & 10.278 & 26.749 & 45.489 & 3.279 \\
- & 60K QEM-proxy ARAP$^\dagger$ & 10.277 & 26.717 & 45.436 & 1.521 \\
+ & Full-mesh ARAP & 10 & 10.278 & 26.749 & 45.490 & 3.323 \\
+ & 60K QEM-proxy ARAP$^\dagger$ & 10 & 10.277 & 26.717 & 45.436 & 1.408 \\
 \midrule
 \multirow{2}{*}{Stage 3}
- & Grid-proxy ARAP & 10.254 & 26.464 & 44.877 & 1.218 \\
- & Robust QEM-proxy ARAP$^\dagger$ & 10.277 & 26.717 & 45.436 & 1.521 \\
+ & Grid-proxy ARAP & 10 & 10.254 & 26.464 & 44.877 & 1.471 \\
+ & Robust QEM-proxy ARAP$^\dagger$ & 10 & 10.277 & 26.717 & 45.436 & 1.408 \\
 \midrule
 \multirow{2}{*}{Stage 4}
- & Mesh-only TSDF & 9.982 & 26.400 & 45.068 & 0.279 \\
- & Source-supported TSDF & 10.155 & 26.616 & 45.392 & 0.627 \\
+ & Mesh-only TSDF & 10 & 9.982 & 26.400 & 45.068 & 0.098 \\
+ & Source-supported TSDF & 10 & 10.155 & 26.616 & 45.392 & 0.160 \\
 \bottomrule
 \end{tabular}
 \vspace{1pt}
 
-\parbox{\columnwidth}{\scriptsize $^\dagger$Identical final ARAP configuration.
-Core time measures the ablated component and excludes load/save, evaluation,
-and Marching Cubes.}
+\parbox{\columnwidth}{\scriptsize $^\dagger$Identical final Stage-3
+configuration shown in both pairwise comparisons. Core time measures only the
+ablated component and excludes load/save, evaluation, and Marching Cubes.}
 \end{table}
 
-The 60K proxy reduces ARAP time by $2.16\times$ while changing F@25/F@50 by
-only $-0.032/-0.053$ pp relative to the full mesh. Grid-proxy ARAP selects a
-traversal-dependent vertex per spatial cell; replacing it with component-aware
-QEM representatives and robust local-motion propagation improves F@25/F@50 by
-0.253/0.559 pp. Source-supported TSDF reconstruction replaces surface-only
-conversion, adding 0.216/0.324 pp while suppressing unsupported surfaces at
-open boundaries.
+The 60K QEM proxy is $2.36\times$ faster than full-mesh ARAP while changing
+F@25/F@50 by only $-0.032/-0.054$ pp. Compared with the grid proxy, the robust
+QEM proxy is slightly faster and improves F@10/F@25/F@50 by
+$0.023/0.253/0.559$ pp. All three Stage-3 modes use identical inputs, and all
+ten mesh-identity checks pass. Source-supported TSDF reconstruction adds only
+0.062 s over the mesh-only variant while improving F@10/F@25/F@50 by
+$0.173/0.216/0.324$ pp and suppressing unsupported surfaces at open
+boundaries.
 
 \subsection{Extension to Gaussian Primitives}
 
