@@ -1,13 +1,13 @@
 \section{Conclusion}
 WarpVox converts an external trajectory correction into a reusable TSDF by
-computing surface targets from bounded surface-support records, deforming the
-retained surface once, and transferring source-volume semantics to the
-corrected zero set.  Its correction cost follows active geometry rather than
-accumulated frame history.  Across Kimera-Multi and KITTI, WarpVox is the
-closest evaluated alternative to the representation-matched Voxblox
-reintegration reference at every reported threshold, while requiring
-substantially lower core update time.  A separate seven-checkpoint native-mesh
-study shows higher mean accuracy and lower algorithm time than Kimera-PGMO on
-that subset.  The Gaussian-centre extension further shows that
-observation-derived targets are not tied to voxel grids, while the returned
-TSDF preserves the distance-map interface needed for robotic mapping.
+computing surface targets from bounded vertex--observation associations,
+deforming the retained surface once, and transferring source-volume semantics
+to the corrected zero set. Its
+correction cost follows active geometry rather than accumulated frame history.
+Across Kimera-Multi and KITTI it approaches full reintegration at substantially
+lower map-correction cost. A separate seven-checkpoint native-mesh study shows
+higher mean accuracy and lower cumulative algorithm time than Kimera-PGMO on
+that subset.
+The Gaussian-centre extension further shows that observation-derived targets
+are not tied to voxel grids, while the returned TSDF preserves the distance-map
+interface needed for continued robotic mapping.
