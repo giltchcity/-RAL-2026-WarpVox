@@ -14,19 +14,20 @@ trajectory segment, matching the mapper's maximum ray length.  Predictions
 not already expressed in the GT frame are aligned by a RANSAC--Umeyama
 $\mathrm{Sim}(3)$ fitted to timestamp-matched positions from their generating
 and GT trajectories; no mesh-to-GT registration is performed.  Evaluation
-replays frozen inputs offline; the deployed Kimera frontend maintains the same
-bounded support online, while KITTI uses an equivalent LiDAR adapter.
+replays frozen inputs offline; the deployed pipeline maintains the same
+bounded support during online fusion.
 
 \noindent\textbf{Baselines.}
 Uncorrected TSDF integrates the measurements using the pre-correction
-trajectory.  Open3D independently integrates them using the corrected
-poses~\cite{zhou2018open3dmodernlibrary3d}.  Voxgraph builds rigid TSDF
-submaps online and optimizes their poses after loop closure~\cite{reijgwart2020voxgraph}.
-Wavemap integrates the corrected-pose measurements into a hierarchical
-wavelet occupancy map~\cite{reijgwart2023wavemap}.  Full reintegration rebuilds
-the Voxblox TSDF from all raw measurements using the corrected
-poses~\cite{Oleynikova_2017}.  WarpVox instead corrects the uncorrected TSDF
-from retained sensor-frame support and the pre/post-correction trajectories,
+trajectory.  Open3D and Wavemap are corrected-pose full-replay baselines:
+Open3D reconstructs an independent TSDF~\cite{zhou2018open3dmodernlibrary3d},
+whereas Wavemap rebuilds a hierarchical wavelet occupancy map
+~\cite{reijgwart2023wavemap}.  Voxgraph instead builds rigid TSDF submaps
+online and optimizes their poses after loop closure~\cite{reijgwart2020voxgraph}.
+Voxblox reintegration is the representation-matched reference, rebuilding the
+same TSDF from all raw measurements using the corrected
+poses~\cite{Oleynikova_2017}.  WarpVox corrects the uncorrected TSDF from
+retained sensor-frame support and the pre/post-correction trajectories,
 without replaying the raw measurements at correction time.
 
 For prediction $P$, reference $G$, and distance threshold $r$, precision and
@@ -40,12 +41,12 @@ resolution.  CPU times are measured on an AMD Ryzen 7 9700X with 64 GB RAM.
 
 \subsection{Reconstruction Fidelity and Update Cost}
 
-Table~\ref{tab:broad_main} reports the uniform 0.25 m comparison.  On
-Kimera-Multi, WarpVox differs from full reintegration by $+0.204$, $+0.057$,
-and $-0.269$ pp at F@10, F@25, and F@50, respectively.  On KITTI, the
-corresponding differences are $-0.211$, $-0.318$, and $-0.385$ pp.  Thus the
-corrected TSDF closely reproduces the full-reintegration surface on both
-sensing modalities.
+Table~\ref{tab:broad_main} reports the uniform 0.25 m comparison.  Across
+both datasets, WarpVox has the smallest absolute deviation from Voxblox
+reintegration at F@10, F@25, and F@50.  Its differences on Kimera-Multi are
+$+0.204$, $+0.057$, and $-0.269$ pp, respectively; on KITTI, they are
+$-0.211$, $-0.318$, and $-0.385$ pp.  WarpVox also attains the highest F@25
+and F@50 among all non-reference methods on both datasets.
 
 \begin{table}[t]
 \centering
@@ -63,7 +64,7 @@ Data & Method & F@10 & F@25 & F@50 & Core (s) \\
  & Open3D & 8.13 & 22.94 & 41.30 & -- \\
  & Voxgraph & 8.27 & 22.78 & 39.49 & 5.54 \\
  & Wavemap & 1.73 & 11.54 & 30.91 & 8.32 \\
- & Full reintegration & 10.93 & 28.71 & \textbf{48.67} & 109.25 \\
+ & Voxblox reintegration & 10.93 & 28.71 & \textbf{48.67} & 109.25 \\
  & \textbf{WarpVox} & \textbf{11.13} & \textbf{28.77} & 48.40 & 2.43 \\
 \midrule
 \multirow{6}{*}{KITTI (12)}
@@ -71,7 +72,7 @@ Data & Method & F@10 & F@25 & F@50 & Core (s) \\
  & Open3D & \textbf{13.50} & 38.58 & 61.02 & -- \\
  & Voxgraph & 9.38 & 31.89 & 52.49 & 4.53 \\
  & Wavemap & 5.23 & 33.10 & 62.55 & 2.68 \\
- & Full reintegration & 13.21 & \textbf{44.29} & \textbf{67.45} & 15.73 \\
+ & Voxblox reintegration & 13.21 & \textbf{44.29} & \textbf{67.45} & 15.73 \\
  & \textbf{WarpVox} & 13.00 & 43.98 & 67.06 & 4.89 \\
 \bottomrule
 \end{tabular}
@@ -82,13 +83,13 @@ Times for unchanged baselines are retained from their canonical runs; WarpVox
 is remeasured with the final implementation.}
 \end{table}
 
-Relative to the unchanged full-reintegration baseline, the final WarpVox
-implementation is $45.1\times$ faster on Kimera-Multi and $3.22\times$ faster
-on KITTI.  The smaller KITTI speedup reflects different scaling regimes:
-replaying sparse LiDAR scans is comparatively inexpensive, whereas WarpVox
-processes the substantially larger active surface and output volume.  Even in
-this regime, WarpVox obtains the highest F@25 and F@50 among methods that avoid
-full reintegration.
+Relative to Voxblox reintegration, the final WarpVox implementation is
+$45.1\times$ faster on Kimera-Multi and $3.22\times$ faster on KITTI.  The
+smaller KITTI speedup reflects different scaling regimes: replaying sparse
+LiDAR scans is comparatively inexpensive, whereas WarpVox processes the
+substantially larger active surface and output volume.  The speedup therefore
+narrows, but the reconstructed TSDF remains the closest to the Voxblox
+reference among all evaluated alternatives.
 
 Table~\ref{tab:runtime_breakdown} separates the four stages.  For
 Kimera-Multi, the unchanged Stage 1--2 measurements are combined with the
@@ -120,10 +121,10 @@ reconstruction.  Component means are rounded independently.}
 
 As a resolution-transfer check, the same 11 Kimera-Multi cases reconstructed
 at 0.10 m obtain F@10/25/50 of 17.13/39.76/57.83 with WarpVox, compared with
-17.21/39.68/57.12 for full reintegration.  WarpVox requires 10.432 s of core
-computation versus 192.548 s for TSDF reintegration, an $18.5\times$ reduction.
-The close quantitative agreement is complemented by the qualitative
-comparisons in Fig.~\ref{fig:qualitative_ral}.
+17.21/39.68/57.12 for Voxblox reintegration.  WarpVox requires 10.432 s of
+core computation versus 192.548 s for reintegration, an $18.5\times$
+reduction.  The close quantitative agreement is complemented by the
+qualitative comparisons in Fig.~\ref{fig:qualitative_ral}.
 
 \begin{figure*}[t]
 \centering
@@ -159,7 +160,7 @@ comparisons in Fig.~\ref{fig:qualitative_ral}.
 \qd{Figures/qualitative/77_voxgraph_post_sep.png} &
 \qd{Figures/qualitative/77_warped_tsdf.png} \\[2pt]
 \small Voxblox$_{\mathrm{Pre}}$ &
-\small Full reintegration &
+\small Voxblox reintegration &
 \small Voxgraph &
 \small \textbf{WarpVox}
 \end{tabular}
@@ -184,9 +185,10 @@ ORB-SLAM3 supplies timestamps only, yielding seven checkpoints.
 
 On this subset, WarpVox reaches 29.59/49.15\% at F@25/F@50, compared with
 25.39/43.32\% for Kimera-PGMO, gains of 4.20/5.83 pp. Across the same seven
-scopes, WarpVox is $9.05\times$ faster on average and up to $11.31\times$ faster. Core time
-includes Ray, Target/Ceres, ARAP, and Mesh-to-TSDF for WarpVox and graph/mesh
-optimization for Kimera-PGMO; load/save, I/O, and wall-time overhead are excluded.
+scopes, WarpVox is $9.05\times$ faster on average and up to $11.31\times$
+faster. Core time includes Ray, Target/Ceres, ARAP, and Mesh-to-TSDF for
+WarpVox and graph/mesh optimization for Kimera-PGMO; load/save, I/O, and
+wall-time overhead are excluded.
 
 The only exceptions are 1207 L1, where the optimized trajectory changes
 negligibly, and 1207 L3, where substantial residual error leaves little
