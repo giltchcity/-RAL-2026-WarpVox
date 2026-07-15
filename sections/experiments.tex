@@ -60,7 +60,7 @@ Data & Method & F@10 & F@25 & F@50 & Time \\
  & Voxgraph & 8.27 & 22.78 & 39.49 & 5.54 \\
  & Wavemap & 1.73 & 11.54 & 30.91 & 8.32 \\
  & Full reintegration & 10.93 & 28.71 & \textbf{48.67} & 109.25 \\
- & \textbf{WarpVox} & \textbf{11.13} & \textbf{28.77} & 48.40 & \textbf{2.32} \\
+ & \textbf{WarpVox} & \textbf{11.13} & \textbf{28.77} & 48.40 & \textbf{2.82} \\
 \midrule
 \multirow{6}{*}{KITTI (12)}
  & Uncorrected TSDF & 7.13 & 27.91 & 49.22 & -- \\
@@ -77,7 +77,7 @@ The timing column uses the same 39 and 12 checkpoints and excludes disk I/O
 and evaluation.  Relative to full reintegration, WarpVox yields
 $47.1\times$ and $4.7\times$ speedups on Kimera-Multi and KITTI.  The
 measured mean core time per checkpoint for Stages 1--4 (association, target
-computation, deformation, and TSDF reconstruction) is 0.46/0.40/1.24/0.22 s
+computation, deformation, and TSDF reconstruction) is 0.46/0.40/1.45/0.52 s
 on Kimera-Multi and 0.30/0.16/0.59/2.29 s on KITTI.
 
 As a separate resolution-transfer check, 11 Kimera-Multi cases reconstructed
