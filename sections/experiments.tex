@@ -208,18 +208,15 @@ Kimera-PGMO mesh & 1.96 & 6.42 & 17.48 & 31.54 & 435.97 \\
 \parbox{\columnwidth}{\scriptsize Kimera-PGMO time accumulates graph
 optimization and mesh deformation over all callbacks; WarpVox time covers one
 Ray, Ceres, ARAP, and TSDF update. Both exclude I/O, serialization, evaluation,
-and Marching Cubes.}
+and Marching Cubes. Across bags, $\Delta$F@50 for WarpVox minus Kimera-PGMO
+spans $[-0.44,+11.74]$ pp.}
 \end{table}
 
 WarpVox improves the mean F@25/F@50 by 1.24/3.03 pp with $9.27\times$ less
-cumulative core computation. Across bags, $\Delta(P/R/F)$ for WarpVox minus
-Kimera-PGMO spans $[-0.23,+0.18]/[-0.41,+0.67]/[-0.32,+0.31]$ at 5 cm,
-$[-0.94,+1.21]/[-1.54,+2.44]/[-1.12,+1.13]$ at 10 cm,
-$[-2.31,+10.67]/[-1.32,+6.11]/[-1.07,+5.50]$ at 25 cm, and
-$[-3.26,+23.21]/[-0.92,+7.25]/[-0.44,+11.74]$ at 50 cm, in pp. Thus the
-comparison does not establish uniform dominance: it shows that one
- event-triggered WarpVox update attains competitive final accuracy and returns
-a TSDF at substantially lower cumulative cost, while Kimera-PGMO also provides
+cumulative core computation and achieves higher F@50 on eight of ten bags.
+This does not establish uniform dominance: it shows that one event-triggered
+WarpVox update attains competitive final accuracy and returns a TSDF at
+substantially lower cumulative cost, while Kimera-PGMO also provides
 intermediate corrections and its frontend temporal prior.
 
 \subsection{Ablation Study}
