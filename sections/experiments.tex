@@ -172,42 +172,20 @@ cases in the bottom two rows; each row uses the same view across methods.}
 
 \subsection{Event-Triggered Comparison with Kimera-PGMO}
 
-Kimera-PGMO continuously maintains and optimizes a mesh deformation graph as a
-sequence is processed~\cite{kimera_pgmo}, whereas WarpVox is intended to be
-invoked when an important global trajectory update, such as loop closure,
-becomes available. A callback-level comparison would therefore mix many small
-intermediate PGMO corrections with one event-triggered WarpVox update. We
-instead compare the final full-bag state on ten Kimera-Multi bags, emulating a
-single WarpVox invocation after the final global optimization.
+Kimera-PGMO continuously optimizes an online mesh deformation graph,
+whereas WarpVox is invoked after a major trajectory update. We therefore
+compare the final full-bag state on ten Kimera-Multi bags. Both methods receive
+the same 5 cm Voxblox pre-mesh and final VIO-to-PGMO trajectory update.
+Kimera-PGMO additionally uses MeshFrontend lifecycle timestamps and graph
+associations (3 m graph resolution, three neighbours, and a 20 s horizon),
+while WarpVox does not consume these frontend-specific fields.
 
-All ten bags start from the same 5 cm Voxblox TSDF. The native MeshFrontend
-compresses, indexes, and timestamps its block mesh, and the resulting
-pre-correction mesh is supplied unchanged to both methods. Kimera-PGMO produces
-the final post-correction mesh through its deformation graph, while WarpVox
-receives the same pre-mesh and the final VIO-to-PGMO trajectory update. This
-preserves an important difference between the systems: Kimera-PGMO uses the
-per-vertex lifecycle timestamps and graph associations created by its online
-frontend. In our configuration, its graph has 3 m resolution and each vertex
-interpolates three nearby nodes within a 20 s temporal horizon. These fields
-provide a useful identity prior in repeatedly observed regions, but are not
-exact TSDF-voxel-to-pixel provenance. WarpVox does not consume these
-frontend-specific timestamps and instead recovers its support from depth and
-the VIO poses.
-
-Repeated full-bag replays occasionally produced different terminal DPGO
-trajectories and consequently different PGMO meshes. The local mesh deformation
-is not randomized for a fixed state; rather, distributed robust PGO is
-iterative, while graph and full-mesh streams are processed asynchronously and
-the stored mesh is re-deformed only on a full-mesh callback. For affected bags,
-we repeat the complete replay and retain one complete trajectory--mesh pair
-with the lowest ATE, applying that same trajectory update to WarpVox. This is a
-conservative protocol for the comparison, and no mesh F-score is used for run
-selection.
-
-Kimera-PGMO returns a corrected mesh, whereas WarpVox reconstructs a reusable
-5 cm TSDF. Because the native pre-mesh has no accompanying source TSDF volume,
-this comparison uses the explicitly labeled mesh-only Stage 4 and evaluates the
-surface extracted from the returned volume.
+Repeated asynchronous replays occasionally ended at different terminal DPGO
+states. For affected bags, we retain one complete trajectory--mesh pair with
+the lowest ATE and apply the same trajectory update to WarpVox; no mesh score
+is used for selection. Kimera-PGMO returns a mesh, whereas WarpVox returns a
+5 cm TSDF. Since the native pre-mesh has no source TSDF, this comparison uses
+the mesh-only Stage 4.
 
 \begin{table}[t]
 \centering
@@ -228,28 +206,21 @@ Kimera-PGMO mesh & 1.96 & 6.42 & 17.48 & 31.54 & 435.97 \\
 \vspace{1pt}
 
 \parbox{\columnwidth}{\scriptsize Kimera-PGMO time accumulates graph
-optimization and mesh deformation over all callbacks in a bag. WarpVox time is
-one Ray, Ceres, ARAP, and TSDF update. Both exclude I/O, serialization,
-evaluation, and Marching Cubes.}
+optimization and mesh deformation over all callbacks; WarpVox time covers one
+Ray, Ceres, ARAP, and TSDF update. Both exclude I/O, serialization, evaluation,
+and Marching Cubes.}
 \end{table}
 
-WarpVox improves the ten-bag mean by 1.24/3.03 pp at F@25/F@50 while requiring
-$9.27\times$ less core computation under these end-to-end timing definitions.
-Across individual bags, the full $(\Delta P,\Delta R,\Delta F)$ ranges for
-WarpVox minus Kimera-PGMO are $([-0.23,+0.18],[-0.41,+0.67],[-0.32,+0.31])$
-at 5 cm; $([-0.94,+1.21],[-1.54,+2.44],[-1.12,+1.13])$ at 10 cm;
-$([-2.31,+10.67],[-1.32,+6.11],[-1.07,+5.50])$ at 25 cm; and
-$([-3.26,+23.21],[-0.92,+7.25],[-0.44,+11.74])$ at 50 cm, in percentage
-points. Thus individual outcomes are mixed, especially at stricter thresholds.
-WarpVox nevertheless exceeds Kimera-PGMO at F@50 on eight of ten bags and
-remains within 0.45 pp on every individual bag. This experiment should not be
-read as uniform dominance over a continuous optimizer. Rather, it shows that a
-post-hoc method invoked only at a major trajectory correction can closely
-approach, and on average exceed, the final native-mesh accuracy while returning
-a TSDF at substantially lower cumulative core cost. Kimera-PGMO's cost
-additionally provides intermediate online corrections and its
-frontend-specific temporal identity prior; these are complementary operating
-properties rather than capabilities claimed by WarpVox.
+WarpVox improves the mean F@25/F@50 by 1.24/3.03 pp with $9.27\times$ less
+cumulative core computation. Across bags, $\Delta(P/R/F)$ for WarpVox minus
+Kimera-PGMO spans $[-0.23,+0.18]/[-0.41,+0.67]/[-0.32,+0.31]$ at 5 cm,
+$[-0.94,+1.21]/[-1.54,+2.44]/[-1.12,+1.13]$ at 10 cm,
+$[-2.31,+10.67]/[-1.32,+6.11]/[-1.07,+5.50]$ at 25 cm, and
+$[-3.26,+23.21]/[-0.92,+7.25]/[-0.44,+11.74]$ at 50 cm, in pp. Thus the
+comparison does not establish uniform dominance: it shows that one
+ event-triggered WarpVox update attains competitive final accuracy and returns
+a TSDF at substantially lower cumulative cost, while Kimera-PGMO also provides
+intermediate corrections and its frontend temporal prior.
 
 \subsection{Ablation Study}
 
