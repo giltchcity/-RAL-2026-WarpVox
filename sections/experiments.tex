@@ -180,8 +180,8 @@ intermediate PGMO corrections with one event-triggered WarpVox update. We
 instead compare the final full-bag state on ten Kimera-Multi bags, emulating a
 single WarpVox invocation after the final global optimization.
 
-Depth and VIO poses are first fused by Voxblox. The native MeshFrontend then
-compresses, indexes, and timestamps the block mesh, and its resulting
+All ten bags start from the same 5 cm Voxblox TSDF. The native MeshFrontend
+compresses, indexes, and timestamps its block mesh, and the resulting
 pre-correction mesh is supplied unchanged to both methods. Kimera-PGMO produces
 the final post-correction mesh through its deformation graph, while WarpVox
 receives the same pre-mesh and the final VIO-to-PGMO trajectory update. This
@@ -194,9 +194,19 @@ exact TSDF-voxel-to-pixel provenance. WarpVox does not consume these
 frontend-specific timestamps and instead recovers its support from depth and
 the VIO poses.
 
+Repeated full-bag replays occasionally produced different terminal DPGO
+trajectories and consequently different PGMO meshes. The local mesh deformation
+is not randomized for a fixed state; rather, distributed robust PGO is
+iterative, while graph and full-mesh streams are processed asynchronously and
+the stored mesh is re-deformed only on a full-mesh callback. For affected bags,
+we repeat the complete replay and retain one complete trajectory--mesh pair
+with the lowest ATE, applying that same trajectory update to WarpVox. This is a
+conservative protocol for the comparison, and no mesh F-score is used for run
+selection.
+
 Kimera-PGMO returns a corrected mesh, whereas WarpVox reconstructs a reusable
-TSDF. Because the native pre-mesh has no accompanying source TSDF volume, this
-comparison uses the explicitly labeled 5 cm mesh-only Stage 4 and evaluates the
+5 cm TSDF. Because the native pre-mesh has no accompanying source TSDF volume,
+this comparison uses the explicitly labeled mesh-only Stage 4 and evaluates the
 surface extracted from the returned volume.
 
 \begin{table}[t]
@@ -225,16 +235,21 @@ evaluation, and Marching Cubes.}
 
 WarpVox improves the ten-bag mean by 1.24/3.03 pp at F@25/F@50 while requiring
 $9.27\times$ less core computation under these end-to-end timing definitions.
-It exceeds Kimera-PGMO at F@50 on eight of ten bags and remains within 0.45 pp
-on every individual bag. Individual outcomes remain mixed at stricter
-thresholds, so this experiment should not be read as uniform dominance over a
-continuous optimizer. Rather, it shows that a post-hoc method invoked only at
-a major trajectory correction can closely approach, and on average exceed, the
-final native-mesh accuracy while returning a TSDF at substantially lower
-cumulative core cost. Kimera-PGMO's cost additionally provides intermediate
-online corrections and its frontend-specific temporal identity prior; these
-are complementary operating properties rather than capabilities claimed by
-WarpVox.
+Across individual bags, the full $(\Delta P,\Delta R,\Delta F)$ ranges for
+WarpVox minus Kimera-PGMO are $([-0.23,+0.18],[-0.41,+0.67],[-0.32,+0.31])$
+at 5 cm; $([-0.94,+1.21],[-1.54,+2.44],[-1.12,+1.13])$ at 10 cm;
+$([-2.31,+10.67],[-1.32,+6.11],[-1.07,+5.50])$ at 25 cm; and
+$([-3.26,+23.21],[-0.92,+7.25],[-0.44,+11.74])$ at 50 cm, in percentage
+points. Thus individual outcomes are mixed, especially at stricter thresholds.
+WarpVox nevertheless exceeds Kimera-PGMO at F@50 on eight of ten bags and
+remains within 0.45 pp on every individual bag. This experiment should not be
+read as uniform dominance over a continuous optimizer. Rather, it shows that a
+post-hoc method invoked only at a major trajectory correction can closely
+approach, and on average exceed, the final native-mesh accuracy while returning
+a TSDF at substantially lower cumulative core cost. Kimera-PGMO's cost
+additionally provides intermediate online corrections and its
+frontend-specific temporal identity prior; these are complementary operating
+properties rather than capabilities claimed by WarpVox.
 
 \subsection{Ablation Study}
 
