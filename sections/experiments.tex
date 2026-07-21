@@ -43,6 +43,8 @@ crop, spatial region, two-million-point sample, random seed, and thresholds of
 their case.  TSDF methods use a 0.25 m voxel size and a 1.0 m truncation
 distance in the main experiment; Wavemap uses a matched 0.25 m finest
 resolution.  CPU times are measured on an AMD Ryzen 7 9700X with 64 GB RAM.
+All reported core times start from in-memory inputs; bag reading, disk I/O,
+serialization, visualization, and evaluation-only Marching Cubes are excluded.
 
 \subsection{Reconstruction Fidelity and Update Cost}
 
@@ -83,9 +85,8 @@ Data & Method & F@10 & F@25 & F@50 & Core (s) \\
 \end{tabular}
 \vspace{1pt}
 
-\parbox{\columnwidth}{\scriptsize Core time excludes disk I/O and evaluation.
-Times for unchanged baselines are retained from their canonical runs; WarpVox
-is remeasured with the final implementation.}
+\parbox{\columnwidth}{\scriptsize Times for unchanged baselines are retained
+from their canonical runs; WarpVox is remeasured with the final implementation.}
 \end{table}
 
 Relative to Voxblox reintegration, the final WarpVox implementation is
@@ -121,9 +122,7 @@ K-Multi, 10 cm (11) & 4.138 & 0.250 & 5.052 & 0.993 & 10.432 \\
 
 \parbox{\columnwidth}{\scriptsize Stage 1: association; Stage 2: target
 aggregation; Stage 3: deformation and topology processing; Stage 4: TSDF
-reconstruction. Stage 1 is timed from in-memory keyframe measurements through
-stored associations; bag reading is excluded. Component means are rounded
-independently.}
+reconstruction. Component means are rounded independently.}
 \end{table}
 
 As a resolution-transfer check, the same 11 Kimera-Multi cases reconstructed
@@ -217,8 +216,7 @@ Kimera-PGMO mesh & 1.96 & 6.42 & 17.48 & 31.54 & 435.97 \\
 
 \parbox{\columnwidth}{\scriptsize Kimera-PGMO time accumulates graph
 optimization and mesh deformation over all callbacks; WarpVox time covers one
-Ray, Ceres, ARAP, and mesh-only TSDF update. Both exclude I/O, serialization,
-evaluation, and Marching Cubes.}
+Ray, Ceres, ARAP, and mesh-only TSDF update.}
 \end{table}
 
 A single WarpVox update improves the mean F@25/F@50 by 1.24/3.03 pp while
@@ -265,7 +263,7 @@ Component & Variant & $n$ & F@10 & F@25 & F@50 & Core (s) \\
 
 \parbox{\columnwidth}{\scriptsize $^\dagger$Identical final Stage-3
 configuration shown in both pairwise comparisons. Core time measures only the
-ablated component and excludes load/save, evaluation, and Marching Cubes.}
+ablated component.}
 \end{table}
 
 The 60K QEM proxy is $2.36\times$ faster than full-mesh ARAP while changing
