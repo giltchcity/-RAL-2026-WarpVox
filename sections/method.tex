@@ -17,9 +17,9 @@ a TSDF $\Phi^-$, its weight field $w^-$, voxel size $s$, and truncation
 distance $\tau$.  Marching Cubes (MC)~\cite{10.1145/37402.37422} extracts the
 source surface $\mathcal M^-=(V^-,F)$.
 
-During normal fusion, WarpVox maintains a bounded cache of timestamped support
-samples keyed by active TSDF cells.  After MC extraction, the records resolved
-for an active source vertex $v_j^-$ are
+During normal fusion, WarpVox maintains bounded timestamped support state keyed
+by active TSDF cells.  After MC extraction, the records resolved for an active
+source vertex $v_j^-$ are
 \begin{equation}
 \mathcal O_j=\{(t_i,m_{ij},a_{ij},\gamma_{ij})\},
 \qquad |\mathcal O_j|\le n_{\max},
@@ -32,14 +32,14 @@ $\mathcal O=\{\mathcal O_j\}_{j=1}^{|V^-|}$.  The records are organized by
 acquisition time, not by trajectory row index.  Each extracted vertex queries
 a fixed neighbouring-cell stencil, applies the geometric validation below,
 and retains at most $n_{\max}$ samples, yielding Eq.~\eqref{eq:records}
-without retaining the depth stream.  WarpVox then implements
+without retaining the range stream.  WarpVox then implements
 \begin{equation}
 (\Phi^-,w^-,\mathcal M^-,\{T_i^+\},\mathcal O)
 \longmapsto (\Phi^+,w^+),
 \label{eq:contract}
 \end{equation}
 where the warped mesh is an intermediate representation and
-$(\Phi^+,w^+)$ is a standard Voxblox TSDF volume.
+$(\Phi^+,w^+)$ is a Voxblox-compatible TSDF volume.
 
 \begin{figure}[t]
   \centering
@@ -139,7 +139,7 @@ v_j^*=
 For any $r>0$, the fraction of retained weight outside radius $r$ satisfies
 \begin{equation}
 \frac{
-\sum_{\substack{i\in I_j:\\ \|q_{ij}^+-v_j^*\|>r}}\omega_{ij}
+\sum_{\substack{i\in I_j:\ \|q_{ij}^+-v_j^*\|>r}}\omega_{ij}
 }{
 \sum_{i\in I_j}\omega_{ij}
 }
@@ -151,7 +151,9 @@ an association that is mutually consistent but incorrect.
 
 \subsection{One-Shot Surface Deformation}
 
-Let $d_j=v_j^*-v_j^-$ denote an accepted control displacement.  A local
+This stage propagates observation-derived displacements to unsupported surface
+regions; it does not infer the correction from shape alone.  Let
+$d_j=v_j^*-v_j^-$ denote an accepted control displacement.  A local
 source-surface predictor suppresses isolated controls before deformation:
 \begin{equation}
 \widehat d_j=
@@ -257,8 +259,8 @@ t_{f,1}^\pm & t_{f,2}^\pm & n_f^\pm
 denote consistently oriented orthonormal frames of the corresponding source
 and warped triangles.  The first tangent follows the same indexed triangle
 edge in both faces, and
-$t_{f,2}^\pm=n_f^\pm\times t_{f,1}^\pm$.  The output location is pulled back
-to the source volume by
+$t_{f,2}^\pm=n_f^\pm\times t_{f,1}^\pm$.  A piecewise local-rigid pullback maps
+the output location to the source volume by
 \begin{equation}
 \Psi_f(x)=q^-+R_f^-(R_f^+)^\top(x-q^+),
 \qquad x^-=\Psi_f(x).
@@ -316,8 +318,8 @@ w_{\rm fb}(x), & x\in\Omega_{\rm fb},\\
 Outside the active support, the stored distance is immaterial because its
 weight is zero.  Any extension of transferred support is rejected if it
 introduces a new sign crossing.  The resulting $(\Phi^+,w^+)$ is serialized
-as a native Voxblox TSDF; its MC mesh is used only for visualization and
-evaluation.
+in the native Voxblox TSDF format; its MC mesh is used only for visualization
+and evaluation.
 
 \subsection{Complexity and Scope}
 
