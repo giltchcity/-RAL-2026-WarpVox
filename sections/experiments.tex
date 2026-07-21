@@ -14,8 +14,9 @@ trajectory segment, matching the mapper's maximum ray length.  Predictions
 not already expressed in the GT frame are aligned by a RANSAC--Umeyama
 $\mathrm{Sim}(3)$ fitted to timestamp-matched positions from their generating
 and GT trajectories; no mesh-to-GT registration is performed.  Evaluation
-replays frozen inputs offline; the deployed pipeline maintains the same
-bounded support during online fusion.
+replays frozen inputs offline.  The maps are nevertheless updated
+sequentially: after each correction, the returned TSDF replaces the current
+Voxblox volume and fusion continues to the next loop-closure checkpoint.
 
 \noindent\textbf{Baselines.}
 Uncorrected TSDF integrates the measurements using the pre-correction
@@ -27,8 +28,12 @@ online and optimizes their poses after loop closure~\cite{reijgwart2020voxgraph}
 Voxblox reintegration is the representation-matched reference, rebuilding the
 same TSDF from all raw measurements using the corrected
 poses~\cite{Oleynikova_2017}.  WarpVox corrects the uncorrected TSDF from
-retained sensor-frame support and the pre/post-correction trajectories,
-without replaying the raw measurements at correction time.
+retained sensor-frame support and the pre/post-correction trajectories.  In the
+offline benchmark, Stage 1 is reproduced by replaying only the recorded
+keyframes after the pre-correction mesh is available; this replay is used only
+for deterministic evaluation.  In online operation, the same associations are
+accumulated as keyframes arrive, so loop-time correction does not replay
+historical frames.
 
 For prediction $P$, reference $G$, and distance threshold $r$, precision and
 recall are computed by bidirectional nearest-neighbour tests, with
