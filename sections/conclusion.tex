@@ -5,9 +5,9 @@ deforming the retained surface once, and transferring source-volume semantics
 to the corrected zero set. Its
 correction cost follows active geometry rather than accumulated frame history.
 Across Kimera-Multi and KITTI it approaches full reintegration at substantially
-lower map-correction cost. A separate seven-checkpoint native-mesh study shows
-higher mean accuracy and lower cumulative algorithm time than Kimera-PGMO on
-that subset.
+lower map-correction cost. A separate ten-bag final-state comparison improves
+mean F@50 by 3.03 percentage points over Kimera-PGMO while reducing cumulative
+core time by $9.27\times$.
 The Gaussian-centre extension further shows that observation-derived targets
 are not tied to voxel grids, while the returned TSDF preserves the distance-map
 interface needed for continued robotic mapping.
