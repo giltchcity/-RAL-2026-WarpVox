@@ -24,6 +24,7 @@ bounded state indexed by the active TSDF cells $\mathcal A$:
 \qquad |\mathcal S_c|\le n_c.
 \label{eq:streaming_state}
 \end{equation}
+Each entry stores an acquisition time and a calibrated sensor-frame sample.
 After surface extraction, each vertex queries a fixed neighbouring-cell
 stencil and applies the geometric validation below. This Stage-1 resolution is
 written
@@ -34,11 +35,11 @@ written
 \quad |\mathcal O_j|\le n_v,
 \label{eq:resolved_records}
 \end{equation}
-where $m_{ij}$ is a calibrated surface sample expressed in $S_i$ and
-$\alpha_{ij}\in[0,1]$ is its effective association reliability. Records are
-matched by acquisition time rather than trajectory row index. Thus the online
-state is cell-indexed, while the correction backend receives bounded
-vertex-indexed records without retaining the range stream. Its contract is
+where $m_{ij}$ is expressed in $S_i$ and $\alpha_{ij}\in[0,1]$ is its effective
+association reliability. Records are matched by acquisition time rather than
+trajectory row index. Thus the online state is cell-indexed, while the
+correction backend receives bounded vertex-indexed records without retaining
+the range stream. Its contract is
 \begin{equation}
 (\Phi^-,w^-,\mathcal M^-,\{T_i^+\},\mathcal O)
 \longmapsto (\Phi^+,w^+),
@@ -83,11 +84,9 @@ g_{ij}
 \end{aligned}
 \label{eq:association_residuals}
 \end{equation}
-With optional frontend quality $\eta_{ij}\in[0,1]$ (set to one when absent),
-the effective reliability is
+The effective reliability is
 \begin{equation}
 \alpha_{ij}=
-\eta_{ij}
 \exp\!\left(-\frac{e^g_{ij}}{\sigma_g}\right)
 \exp\!\left(-\frac{|e^z_{ij}|}{\sigma_z}\right)
 \frac{g_{ij}}{1+z_{ij}^{\rm proj}/z_0},
@@ -145,9 +144,9 @@ v_j^*=
      {\sum_{i\in I_j}\omega_{ij}}.
 \label{eq:target}
 \end{equation}
-Controls failing the fixed support or dispersion criteria are discarded. The
-dispersion measures agreement among retained candidates, but cannot detect a
-mutually consistent yet incorrect association.
+Only targets passing the fixed support and dispersion tests become controls.
+The dispersion measures agreement among retained candidates, but cannot detect
+a mutually consistent yet incorrect association.
 
 \subsection{Single Event-Level Surface Deformation}
 
@@ -173,7 +172,8 @@ constructs a triangular proxy $\mathcal P^-=(P^-,F_P)$ and selects one QEM
 representative~\cite{garland1997qem} per occupied cell. Let
 $\pi:V^-\rightarrow P^-$ map source vertices to representatives and
 $\mathcal J_a=\{j:\pi(j)=a\}$ collect accepted controls assigned to proxy
-vertex $a$. Their initial proxy displacement and target are
+vertex $a$. For $\mathcal J_a\neq\emptyset$, their initial proxy displacement
+and target are
 \begin{equation}
 \bar d_a=\frac{1}{|\mathcal J_a|}\sum_{j\in\mathcal J_a}d_j,
 \qquad
@@ -270,9 +270,10 @@ d^+(x)=\min\!\left(\tau,\|x-q^+\|\right),
 \label{eq:transferred_support}
 \end{equation}
 
-Let $\Omega_{\rm fb}$ contain bounded unsupported interpolation holes that are
-connected to $\Omega_{\rm tr}$ but not incident to an open mesh boundary. Its
-finite fallback weight is
+Let $\Omega_{\rm fb}\subseteq\mathbb R^3\setminus\Omega_{\rm tr}$ contain
+bounded unsupported interpolation holes that are connected to
+$\Omega_{\rm tr}$ but not incident to an open mesh boundary. Its finite
+fallback weight is
 \begin{equation}
 w_{\rm fb}(x)=
 \begin{cases}
@@ -283,8 +284,8 @@ w_{\rm fb}(x)=
 \end{cases}
 \label{eq:fallback_weight}
 \end{equation}
-The warped normal inherits the source-face orientation, giving the fallback
-side sign
+The warped normal is oriented so that its positive side preserves the source
+TSDF sign convention, giving
 \begin{equation}
 s_f^+(x)=\operatorname{sgn}\!\left((x-q^+)^\top n_f^+\right).
 \label{eq:fallback_sign}
