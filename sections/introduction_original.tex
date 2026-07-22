@@ -15,11 +15,11 @@ Submap methods such as Voxgraph~\cite{reijgwart2020voxgraph} and FlashFusion~\ci
 A calibrated surface sample expressed in its sensor frame is unchanged by a later world-frame pose correction. WarpVox therefore retains a bounded set of such samples with their acquisition times and surface support. Re-expressing them with corrected poses yields corrected world-space targets, so loop correction consumes bounded records rather than the historical range stream.
 
 \vspace{1mm}\noindent\textit{Our approach.}
-WarpVox uses four stages: (i)~associate bounded sensor-frame evidence with the pre-correction surface, (ii)~compute robust targets from corrected poses, (iii)~propagate sparse displacements through one ARAP solve~\cite{ARAP_modeling:2007} on a QEM proxy, and (iv)~reconstruct a TSDF whose zero set follows the warped surface while support and confidence follow the source volume. The last step matters because a surface-only conversion would mark unsupported space as observed. Once the records are maintained by the mapper, correction scales with active surface and volume rather than accumulated frames.
+WarpVox uses four stages: (i)~associate bounded sensor-frame evidence with the pre-correction surface, (ii)~compute robust targets from corrected poses, (iii)~propagate sparse displacements through a single event-level ARAP optimization~\cite{ARAP_modeling:2007} on a QEM proxy, and (iv)~reconstruct a TSDF whose zero set follows the warped surface while support and confidence follow the source volume. The last step matters because a surface-only conversion would mark unsupported space as observed. Once the records are maintained by the mapper, correction scales with active surface and volume rather than accumulated frames.
 
 \vspace{1mm}\noindent\textit{Contributions.}
 \begin{itemize}
     \item We formulate loop-closure map correction from bounded observation-support records, decoupling correction from accumulated raw frames.
-    \item We combine observation-derived targets, one proxy ARAP solve, and source-supported reconstruction to return a Voxblox-compatible TSDF that replaces the active volume and supports continued fusion across subsequent loop closures.
+    \item We combine observation-derived targets, a single event-level proxy deformation, and source-supported reconstruction to return a Voxblox-compatible TSDF that replaces the active volume and supports continued fusion across subsequent loop closures.
     \item We evaluate against full reintegration and mapping baselines over 51 checkpoints, separately compare final-state correction with Kimera-PGMO over ten complete Kimera-Multi bags, and extend the target mechanism to Gaussian primitives.
 \end{itemize}
