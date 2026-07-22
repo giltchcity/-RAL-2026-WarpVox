@@ -12,42 +12,48 @@ or topologically corrupted pre-correction maps are outside its scope.
 \subsection{Problem and Streaming State}
 
 Let $T_i^- ,T_i^+\in SE(3)$ map sensor frame $S_i$ to the world frame before
-and after trajectory correction.  The map built with $\{T_i^-\}$ consists of
-a TSDF $\Phi^-$, its weight field $w^-$, voxel size $s$, and truncation
-distance $\tau$.  Marching Cubes (MC)~\cite{10.1145/37402.37422} extracts the
-source surface $\mathcal M^-=(V^-,F)$.
+and after trajectory correction. The map built with $\{T_i^-\}$ consists of a
+TSDF $\Phi^-$, its weight field $w^-$, voxel size $s$, and truncation distance
+$\tau$. Marching Cubes (MC)~\cite{10.1145/37402.37422} extracts the source
+surface $\mathcal M^-=(V^-,F)$.
 
-During normal fusion, WarpVox maintains bounded timestamped support state keyed
-by active TSDF cells.  After MC extraction, the records resolved for an active
-source vertex $v_j^-$ are
+During fusion, WarpVox retains timestamped sensor-frame surface samples in a
+bounded state indexed by the active TSDF cells $\mathcal A$:
 \begin{equation}
-\mathcal O_j=\{(t_i,m_{ij},a_{ij},\gamma_{ij})\},
-\qquad |\mathcal O_j|\le n_{\max},
-\label{eq:records}
+\mathcal S=\{\mathcal S_c\}_{c\in\mathcal A},
+\qquad |\mathcal S_c|\le n_c.
+\label{eq:streaming_state}
 \end{equation}
-where $m_{ij}$ is a calibrated surface sample expressed in $S_i$,
-$a_{ij}$ is its geometric association weight, and
-$\gamma_{ij}\in[0,1]$ is its retained measurement confidence.  We write
-$\mathcal O=\{\mathcal O_j\}_{j=1}^{|V^-|}$.  The records are organized by
-acquisition time, not by trajectory row index.  Each extracted vertex queries
-a fixed neighbouring-cell stencil, applies the geometric validation below,
-and retains at most $n_{\max}$ samples, yielding Eq.~\eqref{eq:records}
-without retaining the range stream.  WarpVox then implements
+After surface extraction, each vertex queries a fixed neighbouring-cell
+stencil and applies the geometric validation below. This Stage-1 resolution is
+written
+\begin{equation}
+\mathcal O=\mathcal R(\mathcal M^-,\{T_i^-\},\mathcal S),
+\qquad
+\mathcal O_j=\{(t_i,m_{ij},\alpha_{ij})\},
+\quad |\mathcal O_j|\le n_v,
+\label{eq:resolved_records}
+\end{equation}
+where $m_{ij}$ is a calibrated surface sample expressed in $S_i$ and
+$\alpha_{ij}\in[0,1]$ is its effective association reliability. Records are
+matched by acquisition time rather than trajectory row index. Thus the online
+state is cell-indexed, while the correction backend receives bounded
+vertex-indexed records without retaining the range stream. Its contract is
 \begin{equation}
 (\Phi^-,w^-,\mathcal M^-,\{T_i^+\},\mathcal O)
 \longmapsto (\Phi^+,w^+),
 \label{eq:contract}
 \end{equation}
-where the warped mesh is an intermediate representation and
-$(\Phi^+,w^+)$ is a Voxblox-compatible TSDF volume.
+where the warped mesh is intermediate and $(\Phi^+,w^+)$ is a
+Voxblox-compatible TSDF volume.
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=\linewidth]{Figures/pipeline_v5.jpg}
-  \caption{WarpVox maintains bounded surface-support records during fusion,
-  computes corrected surface targets after trajectory correction, deforms the
-  source surface once, and transfers source-volume support to a corrected
-  TSDF.}
+  \caption{WarpVox retains bounded observation support during fusion,
+  resolves corrected surface targets after trajectory correction, performs one
+  event-level proxy deformation, and transfers source-volume support to the
+  corrected TSDF.}
   \label{fig:pipeline}
 \end{figure}
 
@@ -61,12 +67,11 @@ m_{ij}=z_{ij}K^{-1}\bar u,
 \widetilde m_{ij}=[m_{ij}^\top,1]^\top.
 \label{eq:sensor_sample}
 \end{equation}
-The pre-correction pose projects the source vertex into frame $i$.
-Candidate observations are retained through depth consistency,
-three-dimensional geometric agreement, and viewing-angle support.  Let
-$n_j^-$ denote the source-vertex normal and $r_{ij}^-$ the unit viewing
-direction, both expressed in the pre-correction world frame, and let
-$z_{ij}^{\rm proj}$ be the projected depth of $v_j^-$.  We define
+The pre-correction pose projects source vertex $v_j^-$ into frame $i$.
+Candidate observations must agree in depth, three-dimensional position, and
+viewing direction. Let $n_j^-$ be the source normal, $r_{ij}^-$ the unit
+viewing direction in the pre-correction world frame, and $z_{ij}^{\rm proj}$
+the projected vertex depth. We define
 \begin{equation}
 \begin{aligned}
 e^g_{ij}
@@ -78,41 +83,45 @@ g_{ij}
 \end{aligned}
 \label{eq:association_residuals}
 \end{equation}
-The association weight is
+With optional frontend quality $\eta_{ij}\in[0,1]$ (set to one when absent),
+the effective reliability is
 \begin{equation}
-a_{ij}=
+\alpha_{ij}=
+\eta_{ij}
 \exp\!\left(-\frac{e^g_{ij}}{\sigma_g}\right)
 \exp\!\left(-\frac{|e^z_{ij}|}{\sigma_z}\right)
 \frac{g_{ij}}{1+z_{ij}^{\rm proj}/z_0},
 \label{eq:association_weight}
 \end{equation}
-subject to a depth-dependent geometric gate and a minimum weight.  LiDAR uses
-the same construction with spherical projection and radial range.  This is a
-geometric support association rather than exact voxel-integration provenance.
+subject to a depth-dependent geometric gate and a minimum reliability. LiDAR
+uses the analogous construction with spherical projection and radial range.
+This is geometric support rather than exact voxel-integration provenance. The
+$z_0$ term ranks distant samples during capped association; a separate range
+factor below models target reliability after association.
 
 After loop closure, each timestamp selects the corresponding corrected pose.
 For a missing interior pose, translation is interpolated linearly and rotation
-by SLERP over a bounded gap~\cite{shoemake1985slerp}.  The same invariant
-sample defines the corrected target
+by SLERP over a bounded gap~\cite{shoemake1985slerp}. The invariant sample then
+defines the corrected candidate
 \begin{equation}
 q_{ij}^+=\left[T_i^+\widetilde m_{ij}\right]_{1:3}.
 \label{eq:corrected_target}
 \end{equation}
-Equation~\eqref{eq:corrected_target} is exact when the static-scene
-association, calibration, and corrected pose are valid.  Let $\mathcal J_j$
-index the records in $\mathcal O_j$, and let $\rho_{ij}$ denote modality-native
-range, with $\rho_{ij}=z_{ij}$ for RGB-D and
-$\rho_{ij}=\|m_{ij}\|$ for LiDAR.  With
+This candidate is exact when the static-scene association, calibration, and
+corrected pose are valid. Let $\mathcal J_j$ index $\mathcal O_j$, and let
+$\rho_{ij}$ be modality-native range, with $\rho_{ij}=z_{ij}$ for RGB-D and
+$\rho_{ij}=\|m_{ij}\|$ for LiDAR. We first compute
 \begin{equation}
-\omega_{ij}=
-\frac{a_{ij}\gamma_{ij}}{1+\rho_{ij}/\rho_t},
+\omega_{ij}=\frac{\alpha_{ij}}{1+\rho_{ij}/\rho_t},
 \qquad
 \bar q_j=
 \frac{\sum_{i\in\mathcal J_j}\omega_{ij}q_{ij}^+}
-     {\sum_{i\in\mathcal J_j}\omega_{ij}},
+     {\sum_{i\in\mathcal J_j}\omega_{ij}}.
 \label{eq:target_initial}
 \end{equation}
-we retain
+The reliability-weighted center is paired with an unweighted median residual
+scale so that no single high-weight candidate controls both the estimate and
+its rejection threshold:
 \begin{equation}
 I_j=\left\{i\in\mathcal J_j:
 \|q_{ij}^+-\bar q_j\|
@@ -124,8 +133,8 @@ I_j=\left\{i\in\mathcal J_j:
 \right)\right\}.
 \label{eq:target_inliers}
 \end{equation}
-When fewer than three candidates are available, $I_j=\mathcal J_j$.  The
-accepted target and its observable dispersion are
+When fewer than three candidates are available, $I_j=\mathcal J_j$. The final
+target and its observable dispersion are
 \begin{equation}
 v_j^*=
 \frac{\sum_{i\in I_j}\omega_{ij}q_{ij}^+}
@@ -136,25 +145,15 @@ v_j^*=
      {\sum_{i\in I_j}\omega_{ij}}.
 \label{eq:target}
 \end{equation}
-For any $r>0$, the fraction of retained weight outside radius $r$ satisfies
-\begin{equation}
-\frac{
-\sum_{\substack{i\in I_j:\ \|q_{ij}^+-v_j^*\|>r}}\omega_{ij}
-}{
-\sum_{i\in I_j}\omega_{ij}
-}
-\le \frac{\sigma_j^2}{r^2}.
-\label{eq:target_markov}
-\end{equation}
-This bound measures agreement among retained candidates; it does not certify
-an association that is mutually consistent but incorrect.
+Controls failing the fixed support or dispersion criteria are discarded. The
+dispersion measures agreement among retained candidates, but cannot detect a
+mutually consistent yet incorrect association.
 
-\subsection{One-Shot Surface Deformation}
+\subsection{Single Event-Level Surface Deformation}
 
-This stage propagates observation-derived displacements to unsupported surface
-regions; it does not infer the correction from shape alone.  Let
-$d_j=v_j^*-v_j^-$ denote an accepted control displacement.  A local
-source-surface predictor suppresses isolated controls before deformation:
+The deformation stage propagates observation-derived motion; it does not infer
+correction from shape alone. Let $d_j=v_j^*-v_j^-$ be an accepted control
+displacement. A local source-surface predictor suppresses isolated controls:
 \begin{equation}
 \widehat d_j=
 \frac{\sum_{k\in\mathcal N_j}
@@ -162,24 +161,37 @@ source-surface predictor suppresses isolated controls before deformation:
 {\sum_{k\in\mathcal N_j}
 (\|v_j^--v_k^-\|^2+\varepsilon)^{-1}},
 \qquad
-\delta_j=\|d_j-\widehat d_j\|.
+\delta_j=\|d_j-\widehat d_j\|,
 \label{eq:control_filter}
 \end{equation}
-Here $\mathcal N_j$ contains accepted neighbouring controls other than $j$.
-It is restricted to the same connected component when enough support exists,
-and a median--MAD rule rejects large $\delta_j$.
+where $\mathcal N_j$ contains neighbouring accepted controls and is restricted
+to the same connected component when sufficient support exists. A
+median--MAD rule rejects large $\delta_j$.
 
-To make the solve depend on surface complexity rather than raw frame count,
-component-separated spatial clustering~\cite{rossignac1993vertexclustering}
-constructs a proxy $\mathcal P^-=(P^-,E_P)$ and selects one QEM
-representative~\cite{garland1997qem} per occupied cell.  Accepted surface
-targets are aggregated on this proxy.  Robust local rigid consensus computes
-weighted orthogonal-Procrustes fits~\cite{schoenemann1966procrustes} with
-bounded Welsch influence~\cite{yao2020welsch}, supplies synthetic support,
-and replaces a grossly inconsistent measured proxy target only when a strict
-component majority supports the replacement.  The proxy deformation solves
-the cotangent ARAP problem~\cite{ARAP_modeling:2007,
-10.1007/978-3-662-05105-4_2,libigl}
+Component-separated spatial clustering~\cite{rossignac1993vertexclustering}
+constructs a triangular proxy $\mathcal P^-=(P^-,F_P)$ and selects one QEM
+representative~\cite{garland1997qem} per occupied cell. Let
+$\pi:V^-\rightarrow P^-$ map source vertices to representatives and
+$\mathcal J_a=\{j:\pi(j)=a\}$ collect accepted controls assigned to proxy
+vertex $a$. Their initial proxy displacement and target are
+\begin{equation}
+\bar d_a=\frac{1}{|\mathcal J_a|}\sum_{j\in\mathcal J_a}d_j,
+\qquad
+p_a^{(0)}=p_a^-+\bar d_a.
+\label{eq:proxy_initial_target}
+\end{equation}
+A robust local-rigid consensus validates these measured targets and supplies
+motion to unsupported proxy regions. It fits weighted orthogonal-Procrustes
+motions~\cite{schoenemann1966procrustes} with bounded Welsch
+influence~\cite{yao2020welsch}; a measured target is replaced only when it is
+grossly inconsistent and a strict same-component majority supports the local
+motion. Components with no accepted controls inherit a robust nearby motion
+through three spatially separated synthetic anchors. The resulting accepted or
+synthesized targets are $\{p_a^*:a\in\mathcal C_P\}$.
+
+Let $E_P=E(F_P)$ be the proxy edges. WarpVox performs a single event-level
+proxy ARAP optimization~\cite{ARAP_modeling:2007,
+10.1007/978-3-662-05105-4_2,libigl}:
 \begin{equation}
 \begin{aligned}
 \min_{P^+,\{R_a\in SO(3)\}}
@@ -191,59 +203,40 @@ c_{ab}
 (p_a^+-p_b^+)-R_a(p_a^--p_b^-)
 \right\|^2,\\
 \text{s.t.}\quad
-&p_c^+=p_c^*,\qquad c\in\mathcal C_P .
+&p_a^+=p_a^*,\qquad a\in\mathcal C_P .
 \end{aligned}
 \label{eq:arap}
 \end{equation}
-Here $\mathcal N_P(a)$ is the one-ring proxy neighbourhood and
-$c_{ab}=c_{ba}$ are the symmetric cotangent-derived weights used by the
-solver; the factor $1/2$ removes double counting.  Thus accepted proxy targets
-are hard positional constraints, while ARAP interpolates the unconstrained
-surface.
+Here $\mathcal N_P(a)$ is the one-ring neighbourhood induced by $F_P$, and
+$c_{ab}=c_{ba}$ are symmetric cotangent-derived weights; the factor $1/2$
+removes double counting. Association reliability and robust aggregation decide
+which controls survive and where they lie. Once accepted, controls are imposed
+exactly so that ARAP does not attenuate the supplied trajectory correction.
+The standard local--global iterations solve this single event-level
+optimization.
 
-WarpVox performs one proxy solve and transfers displacement to $V^-$ by
-topology-local interpolation.  For each unconstrained connected component,
-three gauge constraints receive the coordinate-wise median displacement of a
-fixed number of nearest valid observation controls.  A bounded harmonic repair
-pass~\cite{sorkine2004laplacian} extends the displacement field only over
-vertices incident to faces with extreme edge stretch, area expansion, or
-aspect ratio.  Fixed dimensionless distortion
-checks~\cite{aigerman2013bounded} omit faces that remain unresolved.  Hence
-the retained source and warped surfaces satisfy
+Proxy displacement is transferred to $V^-$ by topology-local interpolation. A
+local bounded-distortion pass~\cite{sorkine2004laplacian,aigerman2013bounded}
+harmonically repairs isolated failures and omits only faces that remain
+invalid under fixed dimensionless tests. The retained source and warped
+surfaces therefore satisfy
 \begin{equation}
 \bar{\mathcal M}^-=(\bar V^-,\bar F),\qquad
 \mathcal M^+=(\bar V^+,\bar F),\qquad
 \bar F\subseteq F.
 \label{eq:retained_topology}
 \end{equation}
-
-Let $\widehat f,f^*:\bar{\mathcal M}^-\rightarrow\mathbb R^3$ denote the
-estimated and ideal displacement fields.  For a source point
-$y\in\bar{\mathcal M}^-$, let $c$ be its nearest retained hard-control index,
-let $h=d_{\bar{\mathcal M}^-}(y,\bar v_c^-)$ be their geodesic distance, and
-define
-$e_c=\|\widehat f(\bar v_c^-)-f^*(\bar v_c^-)\|$.
-If $\widehat f$ and $f^*$ are locally Lipschitz with constants
-$\widehat L$ and $L_*$, respectively, then
-\begin{equation}
-\|\widehat f(y)-f^*(y)\|
-\le e_c+(L_*+\widehat L)h.
-\label{eq:conditional_bound}
-\end{equation}
-Because the accepted target is imposed as a hard constraint,
-$\widehat f(\bar v_c^-)=d_c$.  Thus association and target estimation determine
-$e_c$, while surface coverage controls $h$; the unknown $e_c$ and $L_*$
-prevent an unconditional error certificate.
+Thus deformation accuracy is governed by target correctness and surface
+coverage; neither is independently certifiable without stronger scene
+assumptions.
 
 \subsection{Source-Supported TSDF Reconstruction}
 
-The warped surface defines the corrected zero set~\cite{sussman1999redistancing},
-while the source TSDF provides observed-space semantics.  For output voxel
+The warped surface supplies the corrected zero set~\cite{sussman1999redistancing},
+while the source TSDF supplies observed-space semantics. For output voxel
 center $x$, a closest-triangle query~\cite{10.1145/2601097.2601199} on
 $\mathcal M^+$ returns face $f$, closest point $q^+$, and barycentric
-coordinates $\beta$.  Shared face indices define a source--warped
-triangle-frame correspondence motivated by deformation
-transfer~\cite{sumner2004deformationtransfer} and locate
+coordinates $\beta$. Shared face indices locate the corresponding source point
 \begin{equation}
 q^-=\sum_{k\in f}\beta_k\bar v_k^-.
 \label{eq:source_correspondence}
@@ -256,32 +249,30 @@ t_{f,1}^\pm & t_{f,2}^\pm & n_f^\pm
 \end{bmatrix}\in SO(3)
 \label{eq:triangle_frames}
 \end{equation}
-denote consistently oriented orthonormal frames of the corresponding source
-and warped triangles.  The first tangent follows the same indexed triangle
-edge in both faces, and
-$t_{f,2}^\pm=n_f^\pm\times t_{f,1}^\pm$.  A piecewise local-rigid pullback maps
-the output location to the source volume by
+be consistently oriented orthonormal frames of the corresponding source and
+warped triangles. The first tangent follows the same indexed edge and
+$t_{f,2}^\pm=n_f^\pm\times t_{f,1}^\pm$. A piecewise local-rigid pullback,
+motivated by deformation transfer~\cite{sumner2004deformationtransfer}, maps
+$x$ to the source volume:
 \begin{equation}
 \Psi_f(x)=q^-+R_f^-(R_f^+)^\top(x-q^+),
 \qquad x^-=\Psi_f(x).
 \label{eq:inverse_map}
 \end{equation}
-This transport retains both tangential and normal offsets relative to the
-corresponding triangles.  Let
+This preserves tangential and normal offsets relative to the corresponding
+triangles. With trilinear source samples $\widetilde\Phi^-$ and
+$\widetilde w^-$, define
 \begin{equation}
 d^+(x)=\min\!\left(\tau,\|x-q^+\|\right),
 \qquad
 \Omega_{\rm tr}=
-\left\{x:\widetilde w^-(\Psi_f(x))>0\right\},
+\left\{x:\widetilde w^-(\Psi_f(x))>0\right\}.
 \label{eq:transferred_support}
 \end{equation}
-where $\widetilde\Phi^-$ and $\widetilde w^-$ denote trilinear samples of the
-source distance and weight fields.
 
-Let $\Omega_{\rm fb}$ denote unsupported interior interpolation holes that are
-locally connected to $\Omega_{\rm tr}$.  It excludes voxels whose closest
-surface feature belongs to a topological open boundary.  Their finite fallback
-weight is
+Let $\Omega_{\rm fb}$ contain bounded unsupported interpolation holes that are
+connected to $\Omega_{\rm tr}$ but not incident to an open mesh boundary. Its
+finite fallback weight is
 \begin{equation}
 w_{\rm fb}(x)=
 \begin{cases}
@@ -292,9 +283,14 @@ w_{\rm fb}(x)=
 \end{cases}
 \label{eq:fallback_weight}
 \end{equation}
-Let $s_f^+(x)\in\{-1,+1\}$ denote the source-consistent side sign induced by
-transporting the orientation of face $f$ from $R_f^-$ to $R_f^+$.  WarpVox
-defines the active output distance by
+The warped normal inherits the source-face orientation, giving the fallback
+side sign
+\begin{equation}
+s_f^+(x)=\operatorname{sgn}\!\left((x-q^+)^\top n_f^+\right).
+\label{eq:fallback_sign}
+\end{equation}
+Define the active output domain $\Omega^+=\Omega_{\rm tr}\cup\Omega_{\rm fb}$.
+On this domain, WarpVox sets
 \begin{equation}
 \Phi^+(x)=
 \begin{cases}
@@ -303,9 +299,10 @@ defines the active output distance by
 s_f^+(x)d^+(x),
 & x\in\Omega_{\rm fb},
 \end{cases}
+\qquad x\in\Omega^+,
 \label{eq:hybrid_tsdf}
 \end{equation}
-with weight
+with
 \begin{equation}
 w^+(x)=
 \begin{cases}
@@ -315,29 +312,33 @@ w_{\rm fb}(x), & x\in\Omega_{\rm fb},\\
 \end{cases}
 \label{eq:hybrid_weight}
 \end{equation}
-Outside the active support, the stored distance is immaterial because its
-weight is zero.  Any extension of transferred support is rejected if it
-introduces a new sign crossing.  The resulting $(\Phi^+,w^+)$ is serialized
-in the native Voxblox TSDF format; its MC mesh is used only for visualization
-and evaluation.
+Any fallback extension that introduces a new sign crossing is rejected. Outside
+$\Omega^+$ the zero weight makes the stored distance immaterial. The resulting
+$(\Phi^+,w^+)$ is serialized in the native Voxblox TSDF format; its MC mesh is
+used only for visualization and evaluation.
 
 \subsection{Complexity and Scope}
 
-Let $A$, $P$, and $X^+$ denote the numbers of active support cells, proxy
-vertices, and allocated output voxels, respectively.  At fixed grid
-resolution, MC produces only a constant number of surface elements per active
-cell, so the extracted surface size is $O(A)$.  The additional streaming state
-and loop-time correction satisfy
+Let $A=|\mathcal A|$, $P=|P^-|$, and $X^+$ be the numbers of active support
+cells, proxy vertices, and allocated output voxels. At fixed resolution, MC
+produces only a constant number of surface elements per active cell, so
+$|V^-|=O(A)$. The streaming and resolved correction states satisfy
 \begin{equation}
-\begin{aligned}
-S_{\rm stream}&=O(n_{\max}A),\\
+S_{\rm stream}=O(n_cA),
+\qquad
+S_{\rm corr}=O(n_vA).
+\label{eq:state_complexity}
+\end{equation}
+Because each source vertex queries a fixed stencil, association resolution and
+target aggregation require $O((n_c+n_v)A)$. The complete correction cost is
+\begin{equation}
 C_{\rm corr}
-&=O(n_{\max}A)+C_{\rm ARAP}(P,E_P)+C_{\rm vol}(X^+,\bar F),
-\end{aligned}
+=O((n_c+n_v)A)
++C_{\rm ARAP}(P,F_P)
++C_{\rm vol}(X^+,\bar F),
 \label{eq:complexity}
 \end{equation}
-where $C_{\rm vol}$ is the accelerated closest-triangle reconstruction cost
-over the allocated output volume.  The accumulated frame count $N$ does not
-occur: each active support cell retains at most $n_{\max}$ records, and the
-remaining work follows the proxy and output volume.  WarpVox therefore removes
-accumulated frame count from the correction complexity.
+where $C_{\rm vol}$ is the accelerated closest-triangle reconstruction cost.
+The accumulated frame count $N$ does not appear: bounded support replaces
+history-dependent replay, while the remaining work follows the active surface,
+proxy, and output volume.
