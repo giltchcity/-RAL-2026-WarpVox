@@ -29,13 +29,14 @@ After surface extraction, each vertex queries a fixed neighbouring-cell
 stencil and applies the geometric validation below. This Stage-1 resolution is
 written
 \begin{equation}
-\mathcal O=\mathcal R(\mathcal M^-,\{T_i^-\},\mathcal S),
-\qquad
-\mathcal O_j=\{(t_i,m_{ij},\alpha_{ij})\},
-\quad |\mathcal O_j|\le n_v,
+\begin{aligned}
+\mathcal O&=\mathcal R(\mathcal M^-,\{T_i^-\},\mathcal S),\\
+\mathcal O_j&=\{(t_i,m_{ij},\alpha_{ij})\},
+\qquad |\mathcal O_j|\le n_v.
+\end{aligned}
 \label{eq:resolved_records}
 \end{equation}
-where $m_{ij}$ is expressed in $S_i$ and $\alpha_{ij}\in[0,1]$ is its effective
+Here $m_{ij}$ is expressed in $S_i$ and $\alpha_{ij}\in[0,1]$ is its effective
 association reliability. Records are matched by acquisition time rather than
 trajectory row index. Thus the online state is cell-indexed, while the
 correction backend receives bounded vertex-indexed records without retaining
@@ -122,14 +123,14 @@ The reliability-weighted center is paired with an unweighted median residual
 scale so that no single high-weight candidate controls both the estimate and
 its rejection threshold:
 \begin{equation}
-I_j=\left\{i\in\mathcal J_j:
-\|q_{ij}^+-\bar q_j\|
-\le
-\max\!\left(
+\begin{aligned}
+\theta_j&=\max\!\left(
 \epsilon_t,
 \kappa_t\operatorname*{median}_{k\in\mathcal J_j}
-\|q_{kj}^+-\bar q_j\|
-\right)\right\}.
+\|q_{kj}^+-\bar q_j\|\right),\\
+I_j&=\left\{i\in\mathcal J_j:
+\|q_{ij}^+-\bar q_j\|\le\theta_j\right\}.
+\end{aligned}
 \label{eq:target_inliers}
 \end{equation}
 When fewer than three candidates are available, $I_j=\mathcal J_j$. The final
@@ -171,11 +172,11 @@ Component-separated spatial clustering~\cite{rossignac1993vertexclustering}
 constructs a triangular proxy $\mathcal P^-=(P^-,F_P)$ and selects one QEM
 representative~\cite{garland1997qem} per occupied cell. Let
 $\pi:V^-\rightarrow P^-$ map source vertices to representatives and
-$\mathcal J_a=\{j:\pi(j)=a\}$ collect accepted controls assigned to proxy
-vertex $a$. For $\mathcal J_a\neq\emptyset$, their initial proxy displacement
+$\mathcal K_a=\{j:\pi(j)=a\}$ collect accepted controls assigned to proxy
+vertex $a$. For $\mathcal K_a\neq\emptyset$, their initial proxy displacement
 and target are
 \begin{equation}
-\bar d_a=\frac{1}{|\mathcal J_a|}\sum_{j\in\mathcal J_a}d_j,
+\bar d_a=\frac{1}{|\mathcal K_a|}\sum_{j\in\mathcal K_a}d_j,
 \qquad
 p_a^{(0)}=p_a^-+\bar d_a.
 \label{eq:proxy_initial_target}
@@ -189,19 +190,15 @@ motion. Components with no accepted controls inherit a robust nearby motion
 through three spatially separated synthetic anchors. The resulting accepted or
 synthesized targets are $\{p_a^*:a\in\mathcal C_P\}$.
 
-Let $E_P=E(F_P)$ be the proxy edges. WarpVox performs a single event-level
-proxy ARAP optimization~\cite{ARAP_modeling:2007,
+WarpVox performs a single event-level proxy ARAP
+optimization~\cite{ARAP_modeling:2007,
 10.1007/978-3-662-05105-4_2,libigl}:
 \begin{equation}
 \begin{aligned}
-\min_{P^+,\{R_a\in SO(3)\}}
-&\frac{1}{2}
-\sum_{a=1}^{|P^-|}
-\sum_{b\in\mathcal N_P(a)}
-c_{ab}
-\left\|
-(p_a^+-p_b^+)-R_a(p_a^--p_b^-)
-\right\|^2,\\
+\min_{P^+,\{R_a\in SO(3)\}}\quad
+&\frac{1}{2}\sum_{a=1}^{|P^-|}
+\sum_{b\in\mathcal N_P(a)}c_{ab}\\[-1mm]
+&\left\|(p_a^+-p_b^+)-R_a(p_a^--p_b^-)\right\|^2,\\
 \text{s.t.}\quad
 &p_a^+=p_a^*,\qquad a\in\mathcal C_P .
 \end{aligned}
@@ -221,8 +218,10 @@ harmonically repairs isolated failures and omits only faces that remain
 invalid under fixed dimensionless tests. The retained source and warped
 surfaces therefore satisfy
 \begin{equation}
-\bar{\mathcal M}^-=(\bar V^-,\bar F),\qquad
-\mathcal M^+=(\bar V^+,\bar F),\qquad
+\bar{\mathcal M}^-=(\bar V^-,\bar F),
+\qquad
+\mathcal M^+=(\bar V^+,\bar F),
+\qquad
 \bar F\subseteq F.
 \label{eq:retained_topology}
 \end{equation}
@@ -263,10 +262,11 @@ This preserves tangential and normal offsets relative to the corresponding
 triangles. With trilinear source samples $\widetilde\Phi^-$ and
 $\widetilde w^-$, define
 \begin{equation}
-d^+(x)=\min\!\left(\tau,\|x-q^+\|\right),
-\qquad
-\Omega_{\rm tr}=
+\begin{aligned}
+d^+(x)&=\min\!\left(\tau,\|x-q^+\|\right),\\
+\Omega_{\rm tr}&=
 \left\{x:\widetilde w^-(\Psi_f(x))>0\right\}.
+\end{aligned}
 \label{eq:transferred_support}
 \end{equation}
 
@@ -290,20 +290,19 @@ TSDF sign convention, giving
 s_f^+(x)=\operatorname{sgn}\!\left((x-q^+)^\top n_f^+\right).
 \label{eq:fallback_sign}
 \end{equation}
-Define the active output domain $\Omega^+=\Omega_{\rm tr}\cup\Omega_{\rm fb}$.
-On this domain, WarpVox sets
+Define $\Omega^+=\Omega_{\rm tr}\cup\Omega_{\rm fb}$ and
+$\Phi^+:\Omega^+\rightarrow[-\tau,\tau]$ by
 \begin{equation}
 \Phi^+(x)=
 \begin{cases}
 \operatorname{sgn}\!\left(\widetilde\Phi^-(\Psi_f(x))\right)d^+(x),
 & x\in\Omega_{\rm tr},\\
 s_f^+(x)d^+(x),
-& x\in\Omega_{\rm fb},
+& x\in\Omega_{\rm fb}.
 \end{cases}
-\qquad x\in\Omega^+,
 \label{eq:hybrid_tsdf}
 \end{equation}
-with
+The output weight is
 \begin{equation}
 w^+(x)=
 \begin{cases}
@@ -333,13 +332,13 @@ S_{\rm corr}=O(n_vA).
 Because each source vertex queries a fixed stencil, association resolution and
 target aggregation require $O((n_c+n_v)A)$. The complete correction cost is
 \begin{equation}
-C_{\rm corr}
-=O((n_c+n_v)A)
-+C_{\rm ARAP}(P,F_P)
-+C_{\rm vol}(X^+,\bar F),
+\begin{aligned}
+C_{\rm corr}={}&O((n_c+n_v)A)+C_{\rm ARAP}(P,F_P)\\
+&+C_{\rm vol}(X^+,\bar F),
+\end{aligned}
 \label{eq:complexity}
 \end{equation}
 where $C_{\rm vol}$ is the accelerated closest-triangle reconstruction cost.
-The accumulated frame count $N$ does not appear: bounded support replaces
-history-dependent replay, while the remaining work follows the active surface,
-proxy, and output volume.
+In the streaming realization, accumulated frame count $N$ does not appear:
+bounded support replaces history-dependent replay, while the remaining work
+follows the active surface, proxy, and output volume.
