@@ -1,14 +1,13 @@
 \section{Conclusion}
-WarpVox converts an external trajectory correction into a Voxblox-compatible
-TSDF by computing surface targets from bounded observation-support records,
-performing one event-level surface deformation, and transferring source-volume
-semantics to the corrected zero set. Its correction cost follows active
-geometry rather than accumulated frame history, and the corrected volume
-supports continued fusion. Across Kimera-Multi and KITTI it approaches full
-reintegration at substantially lower core update cost. A separate ten-bag
-final-state comparison improves mean F@50 by 3.03 percentage points over
-Kimera-PGMO while one WarpVox update uses $9.27\times$ less core computation
-than PGMO accumulated over all callbacks. The Gaussian-centre extension further
-shows that observation-derived targets are not tied to voxel grids, while the
-returned TSDF preserves the distance-map interface needed for continued
-robotic mapping.
+WarpVox converts an external trajectory revision into a native Voxblox TSDF by
+re-expressing bounded sensor-frame support, propagating the resulting targets
+through one event-level surface deformation, and transferring source-volume
+support to the corrected zero set. Its correction cost follows active geometry
+rather than accumulated frame history. Across RGB-D and LiDAR benchmarks,
+WarpVox remains close to full reintegration with mean core-time speedups of
+$43.46\times$ and $3.23\times$, respectively. A separate ten-bag comparison
+shows competitive final-state accuracy against continuous Kimera-PGMO mesh
+optimization with a $9.27\times$ reduction in cumulative core time, while the
+Gaussian-center extension indicates that the target construction is not tied
+to voxel grids. The returned TSDF preserves the representation required for
+continued robotic mapping.
