@@ -1,25 +1,25 @@
 \section{Introduction}
 \label{sec:intro}
 
-Dense 3D maps support navigation, manipulation, and scene understanding in robotics and augmented reality. TSDF methods~\cite{10.1145/3596711.3596726,newcombe2011kinectfusion} integrate range measurements incrementally, while sparse data structures~\cite{10.1145/2508363.2508374,Oleynikova_2017,vizzo2022vdbfusion} make large-scale onboard mapping practical.
+Dense 3D maps support navigation, manipulation, and scene understanding in robotics and augmented reality. TSDF methods~\cite{10.1145/3596711.3596726,newcombe2011kinectfusion} integrate range observations incrementally, while sparse volume structures~\cite{10.1145/2508363.2508374,Oleynikova_2017,vizzo2022vdbfusion} make large-scale onboard mapping practical.
 
-These systems accept sensor poses from an external SLAM front-end but cannot revise measurements already fused into the map. Loop closure and pose-graph optimization~\cite{Campos_2021,5979949} retroactively correct the trajectory, leaving the TSDF in the old world geometry and therefore inconsistent with the corrected poses (Fig.~\ref{fig:teaser}).
+These systems accept poses from an external SLAM front-end but generally cannot revise measurements already fused into the map. Loop closure and pose-graph optimization~\cite{Campos_2021,5979949} retroactively correct the trajectory, leaving the TSDF in the old world geometry and therefore inconsistent with the revised poses (Fig.~\ref{fig:teaser}).
 
-\vspace{1mm}\noindent\textit{The map rebuild bottleneck.}
-The standard remedy is to discard the map and reintegrate all $N$ range frames with corrected poses~\cite{Cramariuc_2023,rosinol2021kimeraslamspatialperception}. Its $O(N|\Omega|)$ cost, for $|\Omega|$ measurements per frame, must be paid again after every loop closure and can take minutes on long sessions.
+\vspace{1mm}\noindent\textit{The map-rebuild bottleneck.}
+The standard remedy is to discard the map and reintegrate all $N$ range frames with corrected poses~\cite{Cramariuc_2023,rosinol2021kimeraslamspatialperception}. Its $O(N|\Omega|)$ cost, for $|\Omega|$ measurements per frame, is paid again after every global correction and can reach minutes on long sessions.
 
 \vspace{1mm}\noindent\textit{Why existing solutions fall short.}
-Submap methods such as Voxgraph~\cite{reijgwart2020voxgraph} and FlashFusion~\cite{han2018flashfusion} apply rigid per-submap transforms but leave intra-submap drift uncorrected. Non-rigid surfel SLAM~\cite{whelan2016elasticfusion} is self-contained rather than an external TSDF correction interface, while neural implicit approaches~\cite{sucar2021imap,zhu2022niceslam,liso2024loopyslam,bruns2024neuralgraphmap} either lack loop closure or require expensive re-optimization.
+Submap methods such as Voxgraph~\cite{reijgwart2020voxgraph} and FlashFusion~\cite{han2018flashfusion} apply rigid per-submap transforms but leave intra-submap drift unresolved. Non-rigid surfel SLAM~\cite{whelan2016elasticfusion} is embedded in its own tracking system rather than exposing an external TSDF-correction interface, while neural implicit maps~\cite{sucar2021imap,zhu2022niceslam,liso2024loopyslam,bruns2024neuralgraphmap} require representation-specific re-optimization.
 
 \vspace{1mm}\noindent\textit{Observation invariance: the key insight.}
-A calibrated surface sample expressed in its sensor frame is unchanged by a later world-frame pose correction. WarpVox therefore retains a bounded set of such samples with their acquisition times and surface support. Re-expressing them with corrected poses yields corrected world-space targets, so loop correction consumes bounded records rather than the historical range stream.
+A calibrated surface sample expressed in its sensor frame is unchanged by a later world-frame pose correction. WarpVox therefore retains a bounded set of timestamped sensor-frame samples with the active map. Re-expressing the same samples with corrected poses yields corrected world-space surface targets, so map correction consumes bounded support rather than the historical range stream.
 
 \vspace{1mm}\noindent\textit{Our approach.}
-WarpVox uses four stages: (i)~associate bounded sensor-frame evidence with the pre-correction surface, (ii)~compute robust targets from corrected poses, (iii)~propagate sparse displacements through a single event-level ARAP optimization~\cite{ARAP_modeling:2007} on a QEM proxy, and (iv)~reconstruct a TSDF whose zero set follows the warped surface while support and confidence follow the source volume. The last step matters because a surface-only conversion would mark unsupported space as observed. Once the records are maintained by the mapper, correction scales with active surface and volume rather than accumulated frames.
+WarpVox has four stages: (i)~resolve bounded sensor-frame support on the pre-correction surface, (ii)~compute robust targets from the corrected poses, (iii)~propagate sparse displacements through a single event-level ARAP optimization~\cite{ARAP_modeling:2007} on a QEM proxy, and (iv)~reconstruct a TSDF whose zero set follows the warped surface while observed support, sign, and weight follow the source volume. The final stage prevents a surface-only conversion from labeling unsupported space as observed. Once support is maintained during fusion, correction scales with the active surface and output volume rather than accumulated frames.
 
 \vspace{1mm}\noindent\textit{Contributions.}
 \begin{itemize}
-    \item We formulate loop-closure map correction from bounded observation-support records, decoupling correction from accumulated raw frames.
-    \item We combine observation-derived targets, a single event-level proxy deformation, and source-supported reconstruction to return a Voxblox-compatible TSDF that replaces the active volume and supports continued fusion across subsequent loop closures.
-    \item We evaluate against full reintegration and mapping baselines over 51 checkpoints, separately compare final-state correction with Kimera-PGMO over ten complete Kimera-Multi bags, and extend the target mechanism to Gaussian primitives.
+    \item We formulate loop-closure map correction from bounded observation support records, decoupling the correction stage from accumulated raw frames.
+    \item We combine observation-derived targets, one event-level proxy deformation, and source-supported TSDF reconstruction to return a native Voxblox TSDF suitable for continued fusion.
+    \item We evaluate RGB-D and LiDAR correction against reintegration and mapping baselines over 51 checkpoints, compare final-state correction with Kimera-PGMO on ten complete bags, and demonstrate transfer of the target mechanism to Gaussian primitives.
 \end{itemize}
