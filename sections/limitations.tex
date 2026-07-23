@@ -1,11 +1,10 @@
 \section{Limitations}
 \label{sec:limitations}
 
-WarpVox is a post-hoc map-correction method and therefore assumes that the
-drifted pre-correction TSDF remains locally coherent. It introduces no new
-surface adjacency and cannot recover missing geometry or incorrectly fused
-topology; rejecting invalid faces may create holes or separate components.
-Such failures require reintegration from raw measurements. Its attainable
-accuracy is also bounded by residual errors in the corrected trajectory. These
-limitations are shared by methods that propagate pose corrections to an
-existing mesh rather than rebuilding the map from sensor data.
+WarpVox assumes a static scene, valid calibration, and a locally coherent
+pre-correction TSDF. It cannot create geometry absent from the source map or
+repair incorrectly fused topology, and repeated or nearly overlapping surfaces
+may still yield a consistent but incorrect association. The bounded-distortion
+guard can leave holes where no valid deformation is found, while the attainable
+accuracy remains limited by residual error in the corrected trajectory. Such
+failures require reintegration from the original measurements.
